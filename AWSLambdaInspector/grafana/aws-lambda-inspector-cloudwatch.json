@@ -1,0 +1,307 @@
+{
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "datasource",
+      "id": "cloudwatch",
+      "name": "CloudWatch",
+      "version": "1.0.0"
+    },
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.0.0-85518.patch7-85777"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "AWS Trusted Advisor dashboard is designed to monitor and display the status of Trusted Advisor checks by visualising the severity of issues using AWS CloudWatch data.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#909090"
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "YELLOW"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Details",
+                    "url": "https://console.aws.amazon.com/trustedadvisor/home?region=us-east-1#/dashboard"
+                  },
+                  {
+                    "targetBlank": true,
+                    "title": "github",
+                    "url": "https://github.com/houssamousalhi/observability/tree/main/AWSTrustedAdvisor"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "RED"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Details",
+                    "url": "https://console.aws.amazon.com/trustedadvisor/home?region=us-east-1#/dashboard"
+                  },
+                  {
+                    "targetBlank": true,
+                    "title": "github",
+                    "url": "https://github.com/houssamousalhi/observability/tree/main/AWSTrustedAdvisor"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byValue",
+              "options": {
+                "op": "eq",
+                "reducer": "lastNotNull",
+                "value": 0
+              }
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byValue",
+              "options": {
+                "op": "gte",
+                "reducer": "allIsNull",
+                "value": 0
+              }
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 22,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "percentChangeColorMode": "inverted",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": true,
+        "text": {
+          "percentSize": 9,
+          "titleSize": 12,
+          "valueSize": 9
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.0.0-85518.patch7-85777",
+      "targets": [
+        {
+          "alias": "🟡",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "${datasource}"
+          },
+          "dimensions": {
+            "CheckName": "*"
+          },
+          "expression": "SEARCH('{  AWS/TrustedAdvisor,CheckName} Yellow $severity', 'Maximum', 86400)",
+          "hide": false,
+          "label": "${PROP('Dim.CheckName')} ",
+          "metricEditorMode": 1,
+          "metricName": "RedResources",
+          "metricQueryType": 0,
+          "namespace": "AWS/TrustedAdvisor",
+          "period": "",
+          "refId": "YELLOW",
+          "region": "us-east-1",
+          "statistic": "Average"
+        },
+        {
+          "alias": "🔴",
+          "datasource": {
+            "uid": "${datasource}"
+          },
+          "dimensions": {
+            "CheckName": "*"
+          },
+          "expression": "SEARCH('{  AWS/TrustedAdvisor,CheckName} Red $severity', 'Maximum', 86400)",
+          "hide": false,
+          "label": "${PROP('Dim.CheckName')} ",
+          "metricEditorMode": 1,
+          "metricName": "RedResources",
+          "metricQueryType": 0,
+          "namespace": "AWS/TrustedAdvisor",
+          "period": "",
+          "refId": "RED",
+          "region": "us-east-1",
+          "statistic": "Average"
+        }
+      ],
+      "title": "$severity Checks",
+      "transparent": true,
+      "type": "stat"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 41,
+  "tags": [
+    "cloudwatch",
+    "Trusted Advisor",
+    "AWS"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "includeAll": false,
+        "name": "datasource",
+        "options": [],
+        "query": "cloudwatch",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "text": "Red",
+          "value": "Red"
+        },
+        "includeAll": false,
+        "label": "Severity",
+        "name": "severity",
+        "options": [
+          {
+            "selected": true,
+            "text": "Red",
+            "value": "Red"
+          },
+          {
+            "selected": false,
+            "text": "Yellow",
+            "value": "Yellow"
+          }
+        ],
+        "query": "Red, Yellow",
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {
+    "nowDelay": ""
+  },
+  "timezone": "browser",
+  "title": "AWS Trusted Advisor",
+  "uid": "aws-trusted-advisor-cloudwatch",
+  "version": 2
+}
