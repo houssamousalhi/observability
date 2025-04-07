@@ -71,6 +71,11 @@ Thumbs.db
 *.tfplan
 *.tfplan.json
 **/.terraform.lock.hcl
+*.auto.tfvars
+*.auto.tfvars.json
+terraform.auto.tfvars
+terraform.auto.tfvars.json
+
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -130,6 +135,7 @@ htmlcov/
 *.temp
 *.bak
 *.backup
+files/
 
 # System Files
 .DS_Store

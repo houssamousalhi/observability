@@ -1,4 +1,7 @@
 import boto3
+import os
+
+CLOUDWATCH_NAMESPACE = os.environ.get('CLOUDWATCH_NAMESPACE')
 
 def lambda_handler(event, context):
     lambda_client = boto3.client('lambda')
@@ -14,7 +17,7 @@ def lambda_handler(event, context):
                 if 'AppVersion' in tags:
                     app_version = tags['AppVersion']
                     stack = tags.get('Stack', 'Unknown')
-                    service = tags.get('Service', stack)
+                    service = tags.get('Stack', 'Unknown') + '-' + tags.get('Service', 'Unknown')
                     env = tags.get('Environment', 'Unknown')
                     terraform = tags.get('TerraformVersion', 'Unknown')    
                     services.add((env, service, stack, terraform))
@@ -26,7 +29,7 @@ def lambda_handler(event, context):
                         {'Name': 'FunctionName', 'Value': function_name}
                     ] 
                     cloudwatch_client.put_metric_data(
-                        Namespace='StackRef',
+                        Namespace=CLOUDWATCH_NAMESPACE,
                         MetricData=[
                             {
                                 'MetricName': 'lambdaTag',
@@ -50,7 +53,7 @@ def lambda_handler(event, context):
         ]
         
         cloudwatch_client.put_metric_data(
-            Namespace='StackRef',
+            Namespace=CLOUDWATCH_NAMESPACE,
             MetricData=[
                 {
                     'MetricName': 'terraformTag',

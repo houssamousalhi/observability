@@ -6,10 +6,10 @@ https://grafana.com/grafana/dashboards/23187-aws-trusted-advisor/
 
 
 ### Res checks view
-![Critical Issues](grafana/screenshots/red.jpg)
+![Critical Issues](grafana-dashboard/screenshots/red.jpg)
 
 ### Yellow checks view
-![Warning Issues](grafana/screenshots/yellow.jpg)
+![Warning Issues](grafana-dashboard/screenshots/yellow.jpg)
 
 
 
