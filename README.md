@@ -33,6 +33,20 @@ For more details, see the [AWS Lambda Inspector README](AWSLambdaInspector/READM
 
 For more details, see the [AWS Trusted Advisor README](AWSTrustedAdvisor/README.md)
 
+### 3. Grafana CloudWatch Key Rotator
+
+The Grafana CloudWatch Key Rotator is a security and maintenance solution that automatically rotates IAM access keys used by Grafana to access CloudWatch metrics, ensuring your AWS monitoring infrastructure follows security best practices.
+
+#### Key Features
+- **Automated Key Rotation**: Automatically rotates IAM access keys on a configurable schedule
+- **Grafana Integration**: Seamlessly updates Grafana data source credentials
+- **CloudWatch Monitoring**: Tracks key age and rotation events
+- **Terraform Implementation**: Easily deployed and managed with Terraform
+- **Secure Key Management**: Uses AWS Secrets Manager and KMS for secure key storage
+- **Zero-Downtime Rotation**: Maintains continuous Grafana monitoring during rotation
+
+For more details, see the [Grafana CloudWatch Key Rotator README](GrafanaCloudWatchKeyRotator/README.md)
+
 ## Getting Started
 
 Each project in this repository has its own documentation and setup instructions. Please refer to the individual project READMEs for detailed information.

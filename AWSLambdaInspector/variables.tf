@@ -99,6 +99,6 @@ variable "grafana_url" {
 }
 
 variable "grafana_access_token" {
-  description = "The access token for the Grafana instance"
+  description = "The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF_VAR_grafana_access_token=<your_token>"
   type        = string
 }
