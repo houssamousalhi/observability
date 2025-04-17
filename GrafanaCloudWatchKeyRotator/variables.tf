@@ -20,6 +20,11 @@ variable "grafana_access_token" {
   type        = string
 }
 
+variable "lambda_runtime" {
+  description = "The runtime of the Lambda function (e.g., python3.13)"
+  type        = string
+  default     = "python3.13"
+}
 
 variable "rotation_period_days" {
   description = "Number of days after which access keys should be rotated"
@@ -37,5 +42,4 @@ variable "schedule_expression_iam_key_rotation" {
   description = "Schedule expression for the CloudWatch event for the iam key rotation"
   type        = string
   default     = "cron(0 8 * * ? *)"
-
 }

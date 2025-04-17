@@ -1,9 +1,16 @@
+locals {
+  source_code_hash = sha256(join("", [
+    for f in fileset("${path.module}/source", "**/*") : filesha256("${path.module}/source/${f}")
+  ]))
+  lambda_zip_path = "${path.module}/files/lambda_function.zip"
+}
+
 module "lambda_rotate_iam_keys" {
-  source                            = "git::https://gitlab.softfactory-accor.net/rbac/cd/it4it/terraform-modules/community/terraform-aws-lambda.git?ref=v6.4.0"
+  source                            = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=v6.4.0"
   function_name                     = "lbd-${var.environment}-grafana-cloudwatch-key-rotator"
   description                       = "rotate grafana cloudwatch key"
   handler                           = "grafana_cloudwatch_key_rotator.lambda_handler"
-  runtime                           = "python3.13"
+  runtime                           = var.lambda_runtime
   memory_size                       = 160
   timeout                           = 30
   create_package                    = false
@@ -57,78 +64,19 @@ data "template_file" "lambda_policy_rotate_iam_keys" {
   }
 }
 
-data "archive_file" "lambda_zip" {
-  type        = "zip"
-  output_path = "./files/grafana_cloudwatch_key_rotator.zip"
-  source_dir  = "./files/temp/lambda_function/package"
-  depends_on  = [null_resource.build_lambda_package]
+data "external" "build_lambda_package" {
+  program = ["${path.module}/tf_wrapper.sh"]
+
+  query = {
+    source_code_hash = local.source_code_hash
+    lambda_runtime   = var.lambda_runtime
+    working_dir      = path.module
+  }
 }
 
-
-resource "null_resource" "build_lambda_package" {
-  triggers = {
-    requirements_hash = filesha256("${path.module}/source/requirements.txt")
-    source_hash       = filesha256("${path.module}/source/grafana_cloudwatch_key_rotator.py")
-  }
-
-  provisioner "local-exec" {
-    command     = <<EOT
-      set -e  # Exit on any error
-      
-      # Define paths
-      MODULE_DIR="${path.module}"
-      FILES_DIR="${path.module}/files"
-      SOURCE_DIR="${path.module}/source"
-      TEMP_DIR="${path.module}/files/temp"
-
-      # Create necessary directories
-      echo "Creating directories..."
-      mkdir -p "$FILES_DIR"
-      mkdir -p "$TEMP_DIR"
-      
-      # Clean up any existing files
-      echo "Cleaning up existing files..."
-      rm -rf "$TEMP_DIR"
-      rm -f "$ZIP_FILE"
-      
-      # Create a new directory for the Lambda function
-      echo "Creating Lambda function directory..."
-      mkdir -p "$TEMP_DIR/lambda_function"
-      
-      # Copy source files to the lambda_function directory
-      echo "Copying source files..."
-      cp "$SOURCE_DIR/grafana_cloudwatch_key_rotator.py" "$TEMP_DIR/lambda_function/"
-      cp "$SOURCE_DIR/requirements.txt" "$TEMP_DIR/lambda_function/"
-      
-      # Create and activate virtual environment with Python 3.13
-      echo "Setting up Python virtual environment..."
-      cd "$TEMP_DIR/lambda_function"
-      python3.13 -m venv venv
-      if [ "$(uname)" = "Darwin" ]; then
-        source venv/bin/activate
-      else
-        source venv/bin/activate
-      fi
-      
-      # Upgrade pip and install dependencies
-      echo "Installing dependencies..."
-      pip install --upgrade pip
-      pip install -r requirements.txt
-      
-      # Create the package directory
-      echo "Creating package directory..."
-      mkdir -p package
-      
-      # Copy all dependencies to the package directory
-      echo "Copying dependencies..."
-      cp -r venv/lib/python3.13/site-packages/* package/
-      
-      # Copy the Lambda function
-      echo "Copying Lambda function..."
-      cp grafana_cloudwatch_key_rotator.py package/
- 
-      echo "Build process completed successfully!"
-    EOT
-    interpreter = ["/bin/bash", "-c"]
-  }
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  output_path = local.lambda_zip_path
+  source_dir  = "./files/temp/lambda_function/package"
+  depends_on  = [data.external.build_lambda_package]
 }

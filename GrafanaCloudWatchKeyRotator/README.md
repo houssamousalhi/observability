@@ -196,6 +196,7 @@ For issues and feature requests, please:
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0.11 |
 | <a name="requirement_archive"></a> [archive](#requirement\_archive) | ~> 2 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59.0 |
+| <a name="requirement_external"></a> [external](#requirement\_external) | ~> 2.2 |
 | <a name="requirement_grafana"></a> [grafana](#requirement\_grafana) | ~> 3.22.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.2 |
 | <a name="requirement_template"></a> [template](#requirement\_template) | ~> 2 |
@@ -204,7 +205,7 @@ For issues and feature requests, please:
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_lambda_rotate_iam_keys"></a> [lambda\_rotate\_iam\_keys](#module\_lambda\_rotate\_iam\_keys) | git::https://gitlab.softfactory-accor.net/rbac/cd/it4it/terraform-modules/community/terraform-aws-lambda.git | v6.4.0 |
+| <a name="module_lambda_rotate_iam_keys"></a> [lambda\_rotate\_iam\_keys](#module\_lambda\_rotate\_iam\_keys) | git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git | v6.4.0 |
 
 ## Resources
 
@@ -218,9 +219,9 @@ For issues and feature requests, please:
 | [aws_secretsmanager_secret.grafana_api_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret) | resource |
 | [aws_secretsmanager_secret_version.grafana_api_key_version](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret_version) | resource |
 | [grafana_data_source.cloudwatch](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/data_source) | resource |
-| [null_resource.build_lambda_package](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [archive_file.lambda_zip](https://registry.terraform.io/providers/hashicorp/archive/latest/docs/data-sources/file) | data source |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [external_external.build_lambda_package](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
 | [template_file.lambda_policy_rotate_iam_keys](https://registry.terraform.io/providers/hashicorp/template/latest/docs/data-sources/file) | data source |
 
 ## Inputs
@@ -232,6 +233,7 @@ For issues and feature requests, please:
 | <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
 | <a name="input_grafana_datasource_name"></a> [grafana\_datasource\_name](#input\_grafana\_datasource\_name) | The name of the Grafana datasource | `string` | `"cw"` | no |
 | <a name="input_grafana_url"></a> [grafana\_url](#input\_grafana\_url) | The URL of the Grafana instance | `string` | n/a | yes |
+| <a name="input_lambda_runtime"></a> [lambda\_runtime](#input\_lambda\_runtime) | The runtime of the Lambda function (e.g., python3.13) | `string` | `"python3.13"` | no |
 | <a name="input_rotation_period_days"></a> [rotation\_period\_days](#input\_rotation\_period\_days) | Number of days after which access keys should be rotated | `number` | `30` | no |
 | <a name="input_schedule_expression_iam_key_rotation"></a> [schedule\_expression\_iam\_key\_rotation](#input\_schedule\_expression\_iam\_key\_rotation) | Schedule expression for the CloudWatch event for the iam key rotation | `string` | `"cron(0 8 * * ? *)"` | no |
 
