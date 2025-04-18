@@ -32,14 +32,20 @@ variable "rotation_period_days" {
   default     = 30
 }
 
+variable "schedule_expression_iam_key_rotation" {
+  description = "Schedule expression for the CloudWatch event for the iam key rotation"
+  type        = string
+  default     = "cron(0 8 * * ? *)"
+}
+
 variable "grafana_datasource_name" {
   description = "The name of the Grafana datasource"
   type        = string
   default     = "cw-demo-rotator-access-key"
 }
 
-variable "schedule_expression_iam_key_rotation" {
-  description = "Schedule expression for the CloudWatch event for the iam key rotation"
+variable "grafana_user_name" {
+  description = "The name of the Grafana user"
   type        = string
-  default     = "cron(0 8 * * ? *)"
+  default     = "grafana-demo-rotator-access-key"
 }

@@ -6,7 +6,8 @@ provider "grafana" {
 
 # Define the IAM user
 resource "aws_iam_user" "grafana" {
-  name = "grafana"
+  name          = var.grafana_user_name
+  force_destroy = true
 }
 
 # Attach CloudWatchReadOnlyAccess policy to the IAM user
@@ -33,9 +34,10 @@ resource "grafana_data_source" "cloudwatch" {
 }
 
 resource "aws_secretsmanager_secret" "grafana_api_key" {
-  name        = "grafana/apikey"
-  description = "Grafana API key"
-  kms_key_id  = aws_kms_key.cmk.key_id
+  name                    = "grafana/apikey"
+  description             = "Grafana API key"
+  kms_key_id              = aws_kms_key.cmk.key_id
+  recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret_version" "grafana_api_key_version" {

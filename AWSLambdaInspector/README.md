@@ -99,26 +99,13 @@ The solution is fully integrated with the following components working together:
   - Customizable panels
   - Alert configuration support
 
-### Integration Flow
-1. **Deployment**:
-   - Terraform creates example Lambda functions with proper tags
-   - Inspector Lambda is deployed with necessary permissions
-   - Grafana data source and dashboard are configured
-
-2. **Operation**:
-   - Inspector Lambda runs on schedule
-   - Collects tag information from all Lambda functions
-   - Publishes metrics to CloudWatch
-   - Grafana pulls metrics through data source
-   - Dashboard visualizes the data
-
-3. **Monitoring**:
-   - Version differences are highlighted
-   - Environment comparisons are available
-   - Service and stack-level views
-   - Alerting on version mismatches
-
 ## Deployment
+
+### Prerequisites
+- AWS Account with appropriate permissions
+- Terraform (>= 1.0.11)
+- AWS CLI configured
+- Grafana instance (self-hosted or cloud)
 
 ### Installation Steps
 
@@ -228,13 +215,16 @@ For issues and feature requests, please:
 - [Grafana Documentation](https://grafana.com/docs/)
 - [CloudWatch Documentation](https://docs.aws.amazon.com/cloudwatch/)
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0.11 |
-| <a name="requirement_archive"></a> [archive](#requirement\_archive) | ~> 2 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59.0 |
 | <a name="requirement_grafana"></a> [grafana](#requirement\_grafana) | ~> 3.22.0 |
 | <a name="requirement_template"></a> [template](#requirement\_template) | ~> 2 |
@@ -257,8 +247,6 @@ For issues and feature requests, please:
 | [aws_iam_user_policy_attachment.cloudwatch_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user_policy_attachment) | resource |
 | [grafana_dashboard.lambda_inspector](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/dashboard) | resource |
 | [grafana_data_source.cloudwatch](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/data_source) | resource |
-| [archive_file.app-inspector](https://registry.terraform.io/providers/hashicorp/archive/latest/docs/data-sources/file) | data source |
-| [archive_file.example](https://registry.terraform.io/providers/hashicorp/archive/latest/docs/data-sources/file) | data source |
 | [template_file.lambda_policy_app_inspector](https://registry.terraform.io/providers/hashicorp/template/latest/docs/data-sources/file) | data source |
 
 ## Inputs
@@ -268,9 +256,11 @@ For issues and feature requests, please:
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region to deploy the resources in | `string` | `"us-east-1"` | no |
 | <a name="input_cloudwatch_namespace"></a> [cloudwatch\_namespace](#input\_cloudwatch\_namespace) | The namespace for the CloudWatch metrics | `string` | `"LambdaInspect"` | no |
 | <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
+| <a name="input_grafana_datasource_name"></a> [grafana\_datasource\_name](#input\_grafana\_datasource\_name) | The name of the Grafana datasource | `string` | `"cw-demo-lambda-inspector"` | no |
 | <a name="input_grafana_url"></a> [grafana\_url](#input\_grafana\_url) | The URL of the Grafana instance | `string` | n/a | yes |
+| <a name="input_grafana_user_name"></a> [grafana\_user\_name](#input\_grafana\_user\_name) | The name of the Grafana user | `string` | `"grafana-demo-lambda-inspector"` | no |
 | <a name="input_lambda_versions"></a> [lambda\_versions](#input\_lambda\_versions) | Map of environment, service, stack, and lambda function versions | `map(map(map(map(map(string)))))` | <pre>{<br/>  "dev": {<br/>    "primary": {<br/>      "backend": {<br/>        "consumer": {<br/>          "TerraformVersion": "1.4.0-RC5",<br/>          "version": "2.4.1"<br/>        },<br/>        "producer": {<br/>          "TerraformVersion": "1.4.0-RC6",<br/>          "version": "1.1.1"<br/>        }<br/>      },<br/>      "frontend": {<br/>        "auth": {<br/>          "TerraformVersion": "1.4.0-SNAPSHOT",<br/>          "version": "1.2.0"<br/>        },<br/>        "cache": {<br/>          "TerraformVersion": "1.4.0-SNAPSHOT",<br/>          "version": "2.4.0"<br/>        }<br/>      }<br/>    }<br/>  },<br/>  "prod": {<br/>    "next": {<br/>      "backend": {<br/>        "consumer": {<br/>          "TerraformVersion": "1.4.0-RC5",<br/>          "version": "2.4.1"<br/>        },<br/>        "producer": {<br/>          "TerraformVersion": "1.4.0-RC5",<br/>          "version": "1.1.1"<br/>        }<br/>      },<br/>      "frontend": {<br/>        "auth": {<br/>          "TerraformVersion": "1.3.0-RELEASE",<br/>          "version": "1.2.0"<br/>        },<br/>        "cache": {<br/>          "TerraformVersion": "1.3.0-RELEASE",<br/>          "version": "2.4.0"<br/>        }<br/>      }<br/>    },<br/>    "primary": {<br/>      "backend": {<br/>        "consumer": {<br/>          "TerraformVersion": "1.4.0-RELEASE",<br/>          "version": "2.5.0"<br/>        },<br/>        "producer": {<br/>          "TerraformVersion": "1.4.0-RELEASE",<br/>          "version": "1.2.0"<br/>        }<br/>      },<br/>      "frontend": {<br/>        "auth": {<br/>          "TerraformVersion": "1.3.0-RELEASE",<br/>          "version": "1.2.0"<br/>        },<br/>        "cache": {<br/>          "TerraformVersion": "1.3.0-RELEASE",<br/>          "version": "2.4.0"<br/>        }<br/>      }<br/>    }<br/>  }<br/>}</pre> | no |
-| <a name="input_schedule_expression"></a> [schedule\_expression](#input\_schedule\_expression) | The schedule expression for the CloudWatch event | `string` | `"rate(5 minutes)"` | no |
+| <a name="input_schedule_expression_lambda_inspector"></a> [schedule\_expression\_lambda\_inspector](#input\_schedule\_expression\_lambda\_inspector) | The schedule expression for the CloudWatch event | `string` | `"rate(5 minutes)"` | no |
 
 ## Outputs
 

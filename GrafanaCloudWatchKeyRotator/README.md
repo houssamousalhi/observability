@@ -68,25 +68,13 @@ The solution is fully integrated with the following components working together:
   - Seamless credential rotation
   - No monitoring downtime
 
-### Integration Flow
-1. **Deployment**:
-   - Terraform creates IAM user with initial access keys
-   - Rotator Lambda is deployed with necessary permissions
-   - Grafana data source is configured with initial credentials
-
-2. **Operation**:
-   - Rotator Lambda runs on schedule
-   - Checks age of current access keys
-   - Creates new keys when rotation is needed
-   - Updates Grafana data source credentials
-   - Deactivates and eventually deletes old keys
-
-3. **Security**:
-   - All sensitive information encrypted with KMS
-   - Keys rotated regularly
-   - Least privilege principle applied to all components
-
 ## Deployment
+
+### Prerequisites
+- AWS Account with appropriate permissions
+- Terraform (>= 1.0.11)
+- AWS CLI configured
+- Grafana instance (self-hosted or cloud)
 
 ### Installation Steps
 
@@ -188,6 +176,10 @@ For issues and feature requests, please:
 - [Grafana Documentation](https://grafana.com/docs/)
 - [AWS Secrets Manager Documentation](https://docs.aws.amazon.com/secretsmanager/)
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -228,6 +220,7 @@ For issues and feature requests, please:
 | <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
 | <a name="input_grafana_datasource_name"></a> [grafana\_datasource\_name](#input\_grafana\_datasource\_name) | The name of the Grafana datasource | `string` | `"cw-demo-rotator-access-key"` | no |
 | <a name="input_grafana_url"></a> [grafana\_url](#input\_grafana\_url) | The URL of the Grafana instance | `string` | n/a | yes |
+| <a name="input_grafana_user_name"></a> [grafana\_user\_name](#input\_grafana\_user\_name) | The name of the Grafana user | `string` | `"grafana-demo-rotator-access-key"` | no |
 | <a name="input_lambda_runtime"></a> [lambda\_runtime](#input\_lambda\_runtime) | The runtime of the Lambda function (e.g., python3.13) | `string` | `"python3.13"` | no |
 | <a name="input_rotation_period_days"></a> [rotation\_period\_days](#input\_rotation\_period\_days) | Number of days after which access keys should be rotated | `number` | `30` | no |
 | <a name="input_schedule_expression_iam_key_rotation"></a> [schedule\_expression\_iam\_key\_rotation](#input\_schedule\_expression\_iam\_key\_rotation) | Schedule expression for the CloudWatch event for the iam key rotation | `string` | `"cron(0 8 * * ? *)"` | no |

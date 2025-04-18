@@ -1,3 +1,43 @@
+variable "aws_region" {
+  description = "The AWS region to deploy the resources in"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "schedule_expression_lambda_inspector" {
+  description = "The schedule expression for the CloudWatch event"
+  type        = string
+  default     = "rate(5 minutes)"
+}
+
+variable "cloudwatch_namespace" {
+  description = "The namespace for the CloudWatch metrics"
+  type        = string
+  default     = "LambdaInspect"
+}
+
+variable "grafana_url" {
+  description = "The URL of the Grafana instance"
+  type        = string
+}
+
+variable "grafana_access_token" {
+  description = "The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF_VAR_grafana_access_token=<your_token>"
+  type        = string
+}
+
+variable "grafana_datasource_name" {
+  description = "The name of the Grafana datasource"
+  type        = string
+  default     = "cw-demo-lambda-inspector"
+}
+
+variable "grafana_user_name" {
+  description = "The name of the Grafana user"
+  type        = string
+  default     = "grafana-demo-lambda-inspector"
+}
+
 variable "lambda_versions" {
   description = "Map of environment, service, stack, and lambda function versions"
   type        = map(map(map(map(map(string)))))
@@ -73,32 +113,4 @@ variable "lambda_versions" {
       }
     }
   }
-}
-
-variable "aws_region" {
-  description = "The AWS region to deploy the resources in"
-  type        = string
-  default     = "us-east-1"
-}
-
-variable "schedule_expression" {
-  description = "The schedule expression for the CloudWatch event"
-  type        = string
-  default     = "rate(5 minutes)"
-}
-
-variable "cloudwatch_namespace" {
-  description = "The namespace for the CloudWatch metrics"
-  type        = string
-  default     = "LambdaInspect"
-}
-
-variable "grafana_url" {
-  description = "The URL of the Grafana instance"
-  type        = string
-}
-
-variable "grafana_access_token" {
-  description = "The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF_VAR_grafana_access_token=<your_token>"
-  type        = string
 }

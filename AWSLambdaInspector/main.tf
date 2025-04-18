@@ -23,16 +23,19 @@ locals {
 }
 
 module "lambda_example" {
-  for_each                          = local.flattened_lambdas
-  source                            = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=v6.4.0"
-  function_name                     = "lbd-${each.value.env}-${each.value.service}-${each.value.stack}-${each.value.lambda}"
-  description                       = "example to track the lambda tags"
-  handler                           = "lambda_function.lambda_handler"
-  runtime                           = "python3.13"
-  memory_size                       = 160
-  timeout                           = 30
-  create_package                    = false
-  local_existing_package            = data.archive_file.example.output_path
+  for_each      = local.flattened_lambdas
+  source        = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=v6.4.0"
+  function_name = "lbd-${each.value.env}-${each.value.service}-${each.value.stack}-${each.value.lambda}"
+  description   = "example to track the lambda tags"
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.13"
+  memory_size   = 160
+  timeout       = 30
+  source_path = [
+    {
+      path = "${path.module}/source-example"
+    }
+  ]
   publish                           = true
   attach_policies                   = true
   attach_policy_jsons               = true
@@ -49,22 +52,19 @@ module "lambda_example" {
   }
 }
 
-data "archive_file" "example" {
-  type        = "zip"
-  source_dir  = "${path.module}/source-example"
-  output_path = "./files/example.zip"
-}
-
 module "lambda_app_inspector" {
-  source                            = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=v6.4.0"
-  function_name                     = "app-inspector"
-  description                       = "app inspector, push lambda and terraform tags to cloudwatch metric"
-  handler                           = "lambda_function.lambda_handler"
-  runtime                           = "python3.13"
-  memory_size                       = 160
-  timeout                           = 30
-  create_package                    = false
-  local_existing_package            = data.archive_file.app-inspector.output_path
+  source        = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=v6.4.0"
+  function_name = "app-inspector"
+  description   = "app inspector, push lambda and terraform tags to cloudwatch metric"
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.13"
+  memory_size   = 160
+  timeout       = 30
+  source_path = [
+    {
+      path = "${path.module}/source-inspector"
+    }
+  ]
   publish                           = true
   attach_policies                   = true
   attach_policy_jsons               = true
@@ -89,7 +89,7 @@ module "lambda_app_inspector" {
 resource "aws_cloudwatch_event_rule" "scrapping_rule" {
   name                = "scrapping_rule"
   description         = "scrapping all lambdas in a single Account AWS"
-  schedule_expression = var.schedule_expression
+  schedule_expression = var.schedule_expression_lambda_inspector
 }
 
 resource "aws_cloudwatch_event_target" "lambda_target" {
@@ -101,9 +101,4 @@ resource "aws_cloudwatch_event_target" "lambda_target" {
 data "template_file" "lambda_policy_app_inspector" {
   template = file("${path.module}/iam_policy_app_inspector.json.tpl")
 }
-
-data "archive_file" "app-inspector" {
-  type        = "zip"
-  source_dir  = "${path.module}/source-inspector"
-  output_path = "./files/app-inspector.zip"
-}
+ 

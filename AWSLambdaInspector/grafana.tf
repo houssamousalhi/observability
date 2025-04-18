@@ -6,7 +6,8 @@ provider "grafana" {
 
 # Define the IAM user
 resource "aws_iam_user" "grafana" {
-  name = "grafana"
+  name          = var.grafana_user_name
+  force_destroy = true
 }
 
 # Attach the IAM access key to the user
@@ -23,7 +24,7 @@ resource "aws_iam_user_policy_attachment" "cloudwatch_policy" {
 # new datasource cw
 resource "grafana_data_source" "cloudwatch" {
   type = "cloudwatch"
-  name = "cw"
+  name = var.grafana_datasource_name
 
   json_data_encoded = jsonencode({
     defaultRegion = var.aws_region
