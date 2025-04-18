@@ -35,7 +35,7 @@ variable "rotation_period_days" {
 variable "grafana_datasource_name" {
   description = "The name of the Grafana datasource"
   type        = string
-  default     = "cw"
+  default     = "cw-demo-rotator-access-key"
 }
 
 variable "schedule_expression_iam_key_rotation" {

@@ -173,6 +173,7 @@ def rotate_access_key(target_username, rotation_period, datasource_name):
 
 def lambda_handler(event, context):
     logger.info(f"Received event: {event}")
+    logger.info(f"Received context: {context}")
     """
     Lambda function to rotate IAM access keys for a specific user.
     """

@@ -16,7 +16,7 @@
             "Action": [
                 "secretsmanager:GetSecretValue"
             ],
-            "Resource": "arn:aws:secretsmanager:*:*:secret:grafana/apikey*"
+            "Resource": "${grafana_api_key_secret_arn}"
         },
         {
             "Effect": "Allow",
