@@ -62,7 +62,6 @@
           },
           "custom": {
             "axisPlacement": "auto",
-            "axisWidth": 400,
             "fillOpacity": 43,
             "hideFrom": {
               "legend": false,

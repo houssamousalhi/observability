@@ -8,6 +8,8 @@ This repository contains various observability projects for AWS infrastructure m
 
 The AWS Lambda Inspector is a comprehensive monitoring solution that automatically tracks and reports on your AWS Lambda functions across different environments. It provides visibility into your Lambda function versions, deployment states, and helps maintain consistency across your development and production environments.
 
+To ensure comprehensive version tracking, it's essential to monitor both the Infrastructure as Code (IAC) version and the Application version. The IAC version captures infrastructure-related changes such as environment variables, IAM permissions, and other AWS resource configurations, while the Application version tracks the actual code and package changes.
+
 #### Key Features
 - **Automated Version Tracking**: Monitors Lambda function versions across different environments (dev, prod)
 - **Environment Comparison**: Easily compare versions between development and production environments
