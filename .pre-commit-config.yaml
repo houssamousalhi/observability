@@ -1,0 +1,43 @@
+default_stages: [pre-commit]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: check-yaml
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.97.4
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_validate
+      - id: terraform_docs
+        args:
+          - '--args=--hide providers'
+      - id: terraform_tflint
+        args:
+          - 'args=--deep'
+      - id: terraform_trivy
+        args:
+          - --args=--skip-dirs='.terraform/modules,**/.terraform/modules' --tf-exclude-downloaded-modules --severity MEDIUM,HIGH,CRITICAL
+      - id: terraform_checkov
+        args:
+         - --args=--quiet
+         - --args=--check MEDIUM
+
+  - repo: https://github.com/psf/black
+    rev: 24.1.1
+    hooks:
+      - id: black
+        language_version: python3
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: pytest -v -s --tb=long --showlocals
+        language: python
+        types: [python]
+        pass_filenames: false
+        verbose: true

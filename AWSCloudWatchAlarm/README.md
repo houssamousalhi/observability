@@ -16,7 +16,7 @@ The AWS CloudWatch Alarms solution provides a comprehensive monitoring and alert
 
 ### Visual Overview
 
-![CloudWatch Alarms Dashboard](grafana-dashboard/screenshot.png)
+![CloudWatch Alarms Dashboard](grafana/screenshot.png)
 
 ## Architecture
 

@@ -39,7 +39,7 @@ resource "grafana_data_source" "cloudwatch" {
 
 
 resource "grafana_dashboard" "lambda_inspector" {
-  config_json = templatefile("${path.module}/grafana-dashboard/aws-cloudwatch-alarm.json.tpl", {
+  config_json = templatefile("${path.module}/grafana/aws-cloudwatch-alarm.json.tpl", {
     cloudwatch_namespace = var.cloudwatch_namespace
   })
 }

@@ -1,5 +1,5 @@
 # AWS Trusted Advisor Dashboard
- 
+
 ### Grafana link
 
 https://grafana.com/grafana/dashboards/23187-aws-trusted-advisor/
@@ -32,10 +32,10 @@ This dashboard provides real-time monitoring of AWS Trusted Advisor checks, help
 ### Visual Overview
 
 #### Critical Issues View
-![Critical Issues](grafana-dashboard/screenshots/red.jpg)
+![Critical Issues](grafana/screenshots/red.jpg)
 
 #### Warning Issues View
-![Warning Issues](grafana-dashboard/screenshots/yellow.jpg)
+![Warning Issues](grafana/screenshots/yellow.jpg)
 
 ## Architecture
 

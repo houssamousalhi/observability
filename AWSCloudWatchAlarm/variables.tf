@@ -43,4 +43,3 @@ variable "grafana_user_name" {
   type        = string
   default     = "grafana-cloudwatch-alarm-demo"
 }
- 

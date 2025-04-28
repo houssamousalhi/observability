@@ -355,4 +355,4 @@
   "uid": "aws-lambda-inspector-cloudwatch",
   "version": 1,
   "weekStart": ""
-} 
+}

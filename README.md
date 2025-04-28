@@ -20,7 +20,7 @@ To ensure comprehensive version tracking, it's essential to monitor both the Inf
 - **Scheduled Monitoring**: Configurable monitoring intervals (default: 5 minutes)
 
 #### Preview
-![Lambda Function Versions Dashboard](AWSLambdaInspector/grafana-dashboard/screenshot.png)
+![Lambda Function Versions Dashboard](AWSLambdaInspector/grafana/screenshot.png)
 *Grafana dashboard showing Lambda function versions across environments*
 
 For more details, see the [AWS Lambda Inspector README](AWSLambdaInspector/README.md)
@@ -41,7 +41,7 @@ To use AWS Trusted Advisor, you must have an AWS Support plan. The minimum requi
 - **Historical Analysis**: Track check results over time
 
 #### Preview
-![AWS Trusted Advisor Dashboard](AWSTrustedAdvisor/grafana-dashboard/screenshots/red.jpg)
+![AWS Trusted Advisor Dashboard](AWSTrustedAdvisor/grafana/screenshots/red.jpg)
 *Grafana dashboard showing checks done by AWS Trusted Advisor*
 
 For more details, see the [AWS Trusted Advisor README](AWSTrustedAdvisor/README.md)

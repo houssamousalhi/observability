@@ -17,8 +17,8 @@ To ensure comprehensive version tracking, it's essential to monitor both the Inf
 - **Scheduled Monitoring**: Configurable monitoring intervals (default: 5 minutes)
 
 ### Visual Overview
- 
-![Lambda Function Versions Dashboard](grafana-dashboard/screenshot.png) 
+
+![Lambda Function Versions Dashboard](grafana/screenshot.png)
 
 ## Architecture
 
