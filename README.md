@@ -1,3 +1,5 @@
+![Test Coverage](https://img.shields.io/badge/coverage-0%25-red)
+
 # Observability Projects
 
 This repository contains various observability projects for AWS infrastructure monitoring and management. Each project is designed to enhance visibility, security, and operational efficiency of your AWS infrastructure.

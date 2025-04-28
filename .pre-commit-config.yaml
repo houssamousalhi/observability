@@ -36,7 +36,7 @@ repos:
     hooks:
       - id: pytest
         name: pytest
-        entry: pytest -v -s --tb=long --showlocals
+        entry: pytest -v -s --tb=long --showlocals --cov=./ --cov-report=term-missing
         language: python
         types: [python]
         pass_filenames: false

@@ -101,4 +101,3 @@ resource "aws_cloudwatch_event_target" "lambda_target" {
 data "template_file" "lambda_policy_app_inspector" {
   template = file("${path.module}/iam_policy_app_inspector.json.tpl")
 }
- 
