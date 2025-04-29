@@ -1,4 +1,4 @@
-![Test Coverage](https://img.shields.io/badge/coverage-0%25-red)
+![Test Coverage](https://img.shields.io/badge/coverage-94.62%25-brightgreen)
 
 # Observability Projects
 
