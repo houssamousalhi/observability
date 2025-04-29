@@ -62,6 +62,25 @@ The Grafana CloudWatch Key Rotator is a security and maintenance solution that a
 
 For more details, see the [Grafana CloudWatch Key Rotator README](GrafanaCloudWatchKeyRotator/README.md)
 
+### 4. AWS CloudWatch Alarms
+
+The AWS CloudWatch Alarms project provides a comprehensive solution for monitoring and alerting on your AWS resources using CloudWatch Alarms. It helps you maintain high availability and performance of your AWS infrastructure by providing real-time monitoring and automated responses to system events.
+
+#### Key Features
+- **Custom Alarm Creation**: Create and manage CloudWatch alarms for various AWS services
+- **Multi-Metric Monitoring**: Monitor multiple metrics simultaneously
+- **Automated Actions**: Configure automatic responses to alarm states
+- **Grafana Integration**: Visualize alarm states and history
+- **Terraform Implementation**: Infrastructure as Code for alarm management
+- **Cost Optimization**: Smart alarm configurations to minimize costs
+- **Cross-Region Monitoring**: Monitor resources across multiple AWS regions
+
+#### Preview
+![AWS CloudWatch Alarms Dashboard](AWSCloudWatchAlarms/grafana/screenshots/alarms.png)
+*Grafana dashboard showing CloudWatch alarm states and metrics*
+
+For more details, see the [AWS CloudWatch Alarms README](AWSCloudWatchAlarms/README.md)
+
 ## Getting Started
 
 Each project in this repository has its own documentation and setup instructions. Please refer to the individual project READMEs for detailed information.

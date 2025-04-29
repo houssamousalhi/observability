@@ -19,7 +19,7 @@ variable "schedule_expression_alarm_forwarder" {
 variable "cloudwatch_namespace" {
   description = "The namespace for the CloudWatch metrics"
   type        = string
-  default     = "CloudWatchAlarms"
+  default     = "CloudWatchAlarmsDemo"
 }
 
 variable "grafana_url" {
@@ -42,4 +42,9 @@ variable "grafana_user_name" {
   description = "The name of the Grafana user"
   type        = string
   default     = "grafana-cloudwatch-alarm-demo"
+}
+
+variable "grafana_contact_point_email" {
+  description = "The email address for the Grafana contact point"
+  type        = string
 }

@@ -12,7 +12,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "12.0.0-85518.patch7-85777"
+      "version": "12.0.0-86898"
     },
     {
       "type": "datasource",
@@ -257,7 +257,7 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": 300000,
+            "insertNulls": 60000,
             "lineWidth": 0,
             "spanNulls": false
           },
@@ -312,14 +312,14 @@
         },
         "mergeValues": true,
         "rowHeight": 0.44,
-        "showValue": "never",
+        "showValue": "always",
         "tooltip": {
           "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-86517.patch1-86795",
+      "pluginVersion": "12.0.0-86898",
       "targets": [
         {
           "datasource": {
@@ -404,7 +404,7 @@
     ]
   },
   "time": {
-    "from": "now-7d",
+    "from": "now-1d",
     "to": "now"
   },
   "timepicker": {},

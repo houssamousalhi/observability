@@ -33,7 +33,7 @@ module "lambda_alarm_forwarder" {
 }
 
 resource "aws_cloudwatch_event_rule" "scrapping_rule" {
-  name                = "scrapping_rule"
+  name                = "scrapping_rule_${var.cloudwatch_namespace}"
   description         = "scrapping all lambdas in a single Account AWS"
   schedule_expression = var.schedule_expression_alarm_forwarder
 }

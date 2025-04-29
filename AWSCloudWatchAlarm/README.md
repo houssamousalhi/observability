@@ -44,7 +44,7 @@ The AWS CloudWatch Alarms solution consists of the following components:
    - Historical data analysis
    - Custom alert panels
 
-## Integration Components
+## Project Structure
 
 ### 1. CloudWatch Alarms Configuration
 - **Alarm Types**:
@@ -102,10 +102,9 @@ The AWS CloudWatch Alarms solution consists of the following components:
 
 ### Installation Steps
 
-1. Clone the repository:
+1. Navigate to the AWSCloudWatchAlarm directory:
    ```bash
-   git clone <repository-url>
-   cd AWSCloudWatchAlarm/terraform
+   cd AWSCloudWatchAlarm
    ```
 
 2. Initialize Terraform:
@@ -116,10 +115,10 @@ The AWS CloudWatch Alarms solution consists of the following components:
 3. Configure your variables in `terraform.auto.tfvars`:
    ```hcl
    aws_region = "us-east-1"
-   alarm_namespace = "CustomMetrics"
+   cloudwatch_namespace = "CloudWatchAlarms"
    grafana_url = "https://your-grafana-instance"
    grafana_access_token = "your-grafana-token"
-   sns_topic_arn = "arn:aws:sns:region:account-id:topic-name"
+   grafana_contact_point_email = "your-email@example.com"
    ```
 
 4. Review the configuration:
@@ -134,14 +133,13 @@ The AWS CloudWatch Alarms solution consists of the following components:
 
 ## Python Application Setup
 
-The project includes a Python-based Lambda function for alarm forwarding. Here's how to set it up:
+The project includes two Python components:
 
-### Prerequisites
-- Python 3.8 or higher
-- pip (Python package installer)
-- virtualenv (recommended)
+### 1. Source Alarm Forwarder (Lambda Function)
 
-### Installation
+Located in the `source-alarm-forwarder` directory, this Lambda function handles alarm forwarding.
+
+#### Setup
 
 1. Navigate to the source-alarm-forwarder directory:
    ```bash
@@ -159,48 +157,26 @@ The project includes a Python-based Lambda function for alarm forwarding. Here's
    pip install -r requirements.txt
    ```
 
-### Testing
+### 2. Source Alarm Demo
 
-The project includes unit tests using pytest. To run the tests:
+Located in the `source-alarm-demo` directory, this is a demo application for testing alarms.
 
-1. Make sure you're in the virtual environment:
+#### Setup
+
+1. Navigate to the source-alarm-demo directory:
    ```bash
+   cd source-alarm-demo
+   ```
+
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
    source venv/bin/activate  # On Windows, use: venv\Scripts\activate
    ```
 
-2. Run the tests:
+3. Install dependencies:
    ```bash
-   pytest
-   ```
-
-### Local Development
-
-For local development and testing:
-
-1. Set up your AWS credentials:
-   ```bash
-   export AWS_ACCESS_KEY_ID=your_access_key
-   export AWS_SECRET_ACCESS_KEY=your_secret_key
-   export AWS_REGION=your_region
-   ```
-
-2. Run the Lambda function locally:
-   ```bash
-   python lambda_function.py
-   ```
-
-### Deployment to AWS
-
-The Lambda function is automatically deployed using Terraform. However, if you need to update the function code:
-
-1. Package the function:
-   ```bash
-   zip -r function.zip lambda_function.py
-   ```
-
-2. Update the Lambda function:
-   ```bash
-   aws lambda update-function-code --function-name your-function-name --zip-file fileb://function.zip
+   pip install -r requirements.txt
    ```
 
 ## Monitoring
@@ -212,12 +188,7 @@ After deployment, you can monitor your resources through:
    - Check metric graphs
    - Review alarm history
 
-2. **SNS Notifications**:
-   - Email alerts
-   - SMS notifications
-   - Custom endpoint notifications
-
-3. **Grafana Dashboard**:
+2. **Grafana Dashboard**:
    - Real-time metric visualization
    - Alarm state overview
    - Historical data analysis
@@ -311,8 +282,10 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 | [aws_iam_access_key.access_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_access_key) | resource |
 | [aws_iam_user.grafana](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user) | resource |
 | [aws_iam_user_policy_attachment.cloudwatch_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user_policy_attachment) | resource |
-| [grafana_dashboard.lambda_inspector](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/dashboard) | resource |
+| [grafana_contact_point.default](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/contact_point) | resource |
+| [grafana_dashboard.cloudwatch_alarm](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/dashboard) | resource |
 | [grafana_data_source.cloudwatch](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/data_source) | resource |
+| [grafana_notification_policy.default](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/notification_policy) | resource |
 | [template_file.lambda_policy_alarm_forwarder](https://registry.terraform.io/providers/hashicorp/template/latest/docs/data-sources/file) | data source |
 
 ## Inputs
@@ -320,8 +293,9 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region to deploy the resources in | `string` | `"us-east-1"` | no |
-| <a name="input_cloudwatch_namespace"></a> [cloudwatch\_namespace](#input\_cloudwatch\_namespace) | The namespace for the CloudWatch metrics | `string` | `"CloudWatchAlarms"` | no |
+| <a name="input_cloudwatch_namespace"></a> [cloudwatch\_namespace](#input\_cloudwatch\_namespace) | The namespace for the CloudWatch metrics | `string` | `"CloudWatchAlarmsDemo"` | no |
 | <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
+| <a name="input_grafana_contact_point_email"></a> [grafana\_contact\_point\_email](#input\_grafana\_contact\_point\_email) | The email address for the Grafana contact point | `string` | n/a | yes |
 | <a name="input_grafana_datasource_name"></a> [grafana\_datasource\_name](#input\_grafana\_datasource\_name) | The name of the Grafana datasource | `string` | `"cw-alarm-demo"` | no |
 | <a name="input_grafana_url"></a> [grafana\_url](#input\_grafana\_url) | The URL of the Grafana instance | `string` | n/a | yes |
 | <a name="input_grafana_user_name"></a> [grafana\_user\_name](#input\_grafana\_user\_name) | The name of the Grafana user | `string` | `"grafana-cloudwatch-alarm-demo"` | no |

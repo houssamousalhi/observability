@@ -87,7 +87,7 @@ module "lambda_app_inspector" {
 }
 
 resource "aws_cloudwatch_event_rule" "scrapping_rule" {
-  name                = "scrapping_rule"
+  name                = "scrapping_rule_${var.cloudwatch_namespace}"
   description         = "scrapping all lambdas in a single Account AWS"
   schedule_expression = var.schedule_expression_lambda_inspector
 }
