@@ -1,3 +1,4 @@
+![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
 # AWS Trusted Advisor Dashboard
 
 ### Grafana link
@@ -7,8 +8,7 @@ https://grafana.com/grafana/dashboards/23187-aws-trusted-advisor/
 ## Prerequisites
 
 ### AWS Support Plan Requirements
-To use AWS Trusted Advisor, you must have an AWS Support plan. The minimum required plan is the **Developer Support** tier. You can manage your support plan at:
-- [AWS Support Plans Console](https://us-east-1.console.aws.amazon.com/support/plans/home?region=us-east-1#/)
+To use AWS Trusted Advisor, you must have an AWS Support plan. The minimum required plan is the **Developer Support** tier.
 
 
 ## Overview
