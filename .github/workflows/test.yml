@@ -1,4 +1,4 @@
-name: Test and Coverage
+name: Test
 
 on:
   push:
@@ -22,27 +22,76 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pytest-cov boto3
-    - name: Test with pytest
+        pip install pytest pytest-cov pytest-mock
+        pip install -r AWSCloudWatchAlarm/source-alarm-forwarder/requirements.txt
+        pip install -r AWSLambdaInspector/source-inspector/requirements.txt
+    - name: Run tests with coverage
       run: |
-        pytest --cov=./ --cov-report=term-missing --cov-report=xml
-    - name: Generate coverage badge
+        # Run tests and generate XML report
+        python -m pytest --cov=./ --cov-report=term-missing --cov-report=xml
+
+        # Debug: Show XML content
+        echo "=== XML Content ==="
+        cat coverage.xml
+        echo "=== End XML Content ==="
+
+        # Function to determine color based on coverage
+        get_color() {
+          local coverage=$1
+          if (( $(echo "$coverage >= 90" | bc -l) )); then
+            echo "brightgreen"
+          elif (( $(echo "$coverage >= 80" | bc -l) )); then
+            echo "green"
+          elif (( $(echo "$coverage >= 70" | bc -l) )); then
+            echo "yellow"
+          else
+            echo "red"
+          fi
+        }
+
+        # Parse XML coverage report
+        while IFS= read -r line; do
+          # Debug: Show each line being processed
+          echo "Processing line: $line"
+          
+          if [[ $line =~ filename=\"([^\"]+)\" ]]; then
+            filepath="${BASH_REMATCH[1]}"
+            echo "Found filepath: $filepath"
+            
+            # Extract project name from path
+            if [[ $filepath =~ ^([^/]+)/ ]]; then
+              project_name="${BASH_REMATCH[1]}"
+              echo "Extracted project name: $project_name"
+              
+              if [[ $project_name != "tests" && $project_name != "." ]]; then
+                # Get coverage for this file
+                if [[ $line =~ line-rate=\"([^\"]+)\" ]]; then
+                  coverage=$(echo "${BASH_REMATCH[1]} * 100" | bc | cut -d. -f1)
+                  color=$(get_color $coverage)
+                  echo "Found project: $project_name with coverage: $coverage%"
+                  # Add or update project badge
+                  if ! grep -q "$project_name Coverage" README.md; then
+                    sed -i "/^# AWS Observability Solutions/i ![${project_name} Coverage](https://img.shields.io/badge/coverage-${coverage}%25-${color})" README.md
+                  else
+                    sed -i "s/coverage-[0-9.]*%25-${color}/coverage-${coverage}%25-${color}/" README.md
+                  fi
+                fi
+              fi
+            fi
+          elif [[ $line =~ line-rate=\"([^\"]+)\" && $line =~ name=\"TOTAL\" ]]; then
+            total_coverage=$(echo "${BASH_REMATCH[1]} * 100" | bc | cut -d. -f1)
+            total_color=$(get_color $total_coverage)
+            echo "Total coverage: $total_coverage%"
+            # Update total coverage badge
+            sed -i "s/coverage-[0-9.]*%25/coverage-${total_coverage}%25/" README.md
+            sed -i "s/brightgreen\|green\|yellow\|red/${total_color}/" README.md
+          fi
+        done < coverage.xml
+
+    - name: Commit changes
       run: |
-        coverage=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(round(float(root.attrib['line-rate']) * 100, 2))")
-        echo "coverage=$coverage" >> $GITHUB_ENV
-        if (( $(echo "$coverage >= 90" | bc -l) )); then
-          color="brightgreen"
-        elif (( $(echo "$coverage >= 70" | bc -l) )); then
-          color="yellow"
-        else
-          color="red"
-        fi
-        echo "color=$color" >> $GITHUB_ENV
-    - name: Update coverage badge
-      run: |
-        sed -i "s/coverage-[0-9]*%25-[a-z]*/coverage-${coverage}%25-${color}/" README.md
         git config --global user.name 'github-actions[bot]'
-        git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git add README.md
-        git commit -m "Update coverage badge to ${coverage}%" || true
-        git push || true
+        git commit -m "Update coverage badges [skip ci]" || exit 0
+        git push
