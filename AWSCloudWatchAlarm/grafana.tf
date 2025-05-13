@@ -37,11 +37,15 @@ resource "grafana_data_source" "cloudwatch" {
   })
 }
 
+resource "grafana_folder" "rule_folder" {
+  title = "Alarms"
+}
 
 resource "grafana_dashboard" "cloudwatch_alarm" {
   config_json = templatefile("${path.module}/grafana/aws-cloudwatch-alarm.json.tpl", {
     cloudwatch_namespace = var.cloudwatch_namespace
   })
+  folder    = grafana_folder.rule_folder.uid
   overwrite = true
 }
 
@@ -59,80 +63,102 @@ resource "grafana_notification_policy" "default" {
   contact_point   = grafana_contact_point.default.name
   group_by        = ["alertname"]
   group_wait      = "30s"
-  group_interval  = "5m"
+  group_interval  = "1m"
   repeat_interval = "4h"
 }
 
-# resource "grafana_rule_group" "cloudwatch_alarm" {
-#   name             = "CloudWatch Alarm Monitor"
-#   folder_uid       = "default"
-#   interval_seconds = 60
+resource "grafana_rule_group" "cloudwatch_alarm" {
+  name             = "CloudWatch Alarms"
+  folder_uid       = grafana_folder.rule_folder.uid
+  interval_seconds = 60
 
-#   rule {
-#     name           = "CloudWatch Alarm Monitor"
-#     condition      = "A"
-#     no_data_state  = "NoData"
-#     exec_err_state = "Error"
+  rule {
+    name           = "CloudWatch Alarms"
+    condition      = "C"
+    no_data_state  = "OK"
+    exec_err_state = "Error"
 
-#     data {
-#       ref_id = "A"
-#       relative_time_range {
-#         from = 900 # 15 minutes
-#         to   = 0
-#       }
+    data {
+      ref_id = "A"
+      relative_time_range {
+        from = 60 # 1 minute
+        to   = 0
+      }
+      datasource_uid = grafana_data_source.cloudwatch.uid
+      model = jsonencode({
+        alias = ""
+        datasource = {
+          uid = grafana_data_source.cloudwatch.uid
+        }
+        dimensions       = {}
+        expression       = ""
+        id               = ""
+        instant          = true
+        intervalMs       = 1000
+        label            = "$${PROP(\"Dim.AlarmName\")}"
+        logGroups        = []
+        matchExact       = false
+        maxDataPoints    = 1
+        metricEditorMode = 0
+        metricName       = "ActiveAlarm"
+        metricQueryType  = 0
+        namespace        = var.cloudwatch_namespace
+        period           = "60"
+        queryLanguage    = "CWLI"
+        queryMode        = "Metrics"
+        range            = false
+        refId            = "A"
+        region           = var.aws_region
+        sqlExpression    = ""
+        statistic        = "Maximum"
+      })
+    }
 
-#       datasource_uid = grafana_data_source.cloudwatch.uid
+    data {
+      ref_id = "B"
+      relative_time_range {
+        from = 0
+        to   = 0
+      }
+      datasource_uid = "-100"
+      model = jsonencode({
+        type       = "reduce"
+        reducer    = "last"
+        expression = "A"
+        refId      = "B"
+        settings = {
+          mode             = "replaceNN"
+          replaceWithValue = 0
+        }
+      })
+    }
 
-#       model = jsonencode({
-#         alias = ""
-#         datasource = {
-#           uid = grafana_data_source.cloudwatch.uid
-#         }
-#         dimensions = {}
-#         expression = ""
-#         filters = [
-#           {
-#             key      = "AlarmState"
-#             operator = "="
-#             value    = "$status"
-#           }
-#         ]
-#         id               = ""
-#         instant          = false
-#         intervalMs       = 1000
-#         label            = "$${PROP(\"Dim.AlarmName\")} "
-#         logGroups        = []
-#         matchExact       = false
-#         maxDataPoints    = 43200
-#         metricEditorMode = 0
-#         metricName       = "ActiveAlarm"
-#         metricQueryType  = 0
-#         namespace        = "CloudWatchAlarms"
-#         period           = ""
-#         queryLanguage    = "CWLI"
-#         queryMode        = "Metrics"
-#         range            = true
-#         refId            = "A"
-#         region           = var.aws_region
-#         sqlExpression    = ""
-#         statistic        = "Maximum"
-#       })
-#     }
+    data {
+      ref_id = "C"
+      relative_time_range {
+        from = 0
+        to   = 0
+      }
+      datasource_uid = "-100"
+      model = jsonencode({
+        type = "threshold"
+        conditions = [
+          {
+            evaluator = {
+              params = [0]
+              type   = "gt"
+            }
+          }
+        ]
+        expression = "B"
+        refId      = "C"
+      })
+    }
 
-#     for = "5m"
-#     annotations = {
-#       summary      = "CloudWatch Alarm is active"
-#       description  = "A CloudWatch alarm has been triggered"
-#       runbook_url  = "https://example.com/runbook/cloudwatch-alarms"
-#       dashboardUid = "aws-cloudwatch-alarms"
-#       panelId      = "2"
-#       severity     = "critical"
-#       environment  = "production"
-#       service      = "cloudwatch"
-#       alert_type   = "cloudwatch_alarm"
-#     }
-#     labels = {
-#       severity = "critical"
-#     }
-#   }
-# }
+    annotations = {
+      description      = "A CloudWatch alarm has been triggered"
+      __dashboardUid__ = grafana_dashboard.cloudwatch_alarm.uid
+      __panelId__      = "2"
+    }
+  }
+}
