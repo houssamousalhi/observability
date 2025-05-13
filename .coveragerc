@@ -1,0 +1,23 @@
+[run]
+source = .
+omit = 
+    **/tests/**
+    **/test_*.py
+    **/conftest.py
+    **/setup.py
+    **/__init__.py
+    **/__pycache__/**
+    **/.pytest_cache/**
+    **/.coverage
+    **/coverage.xml
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError
+    def test_
+    class Test 

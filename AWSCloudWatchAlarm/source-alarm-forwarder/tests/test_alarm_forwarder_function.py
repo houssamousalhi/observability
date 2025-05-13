@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from lambda_function import (
+from alarm_forwarder_function import (
     count_alarms_by_resource_type,
     get_resource_info,
     lambda_handler,
@@ -153,7 +153,7 @@ def test_put_individual_alarm_metrics(mock_cloudwatch, capsys):
     assert "State Value: ALARM" in captured.out
 
 
-@patch("lambda_function.boto3.client")
+@patch("alarm_forwarder_function.boto3.client")
 def test_lambda_handler(mock_boto3, mock_cloudwatch, capsys):
     mock_boto3.return_value = mock_cloudwatch
     mock_cloudwatch.get_paginator.return_value.paginate.return_value = [

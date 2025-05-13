@@ -2,7 +2,7 @@ module "lambda_alarm_forwarder" {
   source        = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=v6.4.0"
   function_name = "alarm-forwarder"
   description   = "alarm forwarder, forward alarm to cloudwatch metric"
-  handler       = "lambda_function.lambda_handler"
+  handler       = "alarm_forwarder_function.lambda_handler"
   runtime       = var.lambda_runtime
   memory_size   = 160
   timeout       = 30
