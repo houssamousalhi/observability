@@ -4,12 +4,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "environment" {
-  description = "The environment to deploy the resources in"
-  type        = string
-  default     = "prod"
-}
-
 variable "grafana_url" {
   description = "The URL of the Grafana instance"
   type        = string

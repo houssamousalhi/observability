@@ -1,11 +1,12 @@
-from setuptools import find_packages, setup
+from setuptools import setup, find_packages
 
 setup(
-    name="source_alarm_forwarder",
-    version="0.1",
+    name="source-grafana-cw-datasource-key-rotator",
+    version="0.0.1",
     packages=find_packages(),
     install_requires=[
         "boto3>=1.26.79",
+        "requests>=2.28.0",
     ],
     extras_require={
         "dev": [
