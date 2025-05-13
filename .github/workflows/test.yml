@@ -69,7 +69,7 @@ jobs:
                     # Add or update coverage badge in project README
                     if ! grep -q "Test Coverage" "$project_readme"; then
                       # Add badge after the first heading
-                      sed -i "1s/^/![Test Coverage](https:\/\/img.shields.io\/badge\/coverage-${coverage}%25-${color})\n\n/" "$project_readme"
+                      sed -i "1s/^/![Test Coverage](https:\/\/img.shields.io\/badge\/coverage-${coverage}%25-${color}?style=for-the-badge&logoColor=white)\n\n/" "$project_readme"
                     else
                       # Update existing badge
                       sed -i "s/coverage-[0-9.]*%25/coverage-${coverage}%25/" "$project_readme"

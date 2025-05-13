@@ -3,7 +3,7 @@
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Test Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen?style=for-the-badge&logoColor=white)
+![Test Coverage](https://img.shields.io/badge/coverage-88%25-green?style=for-the-badge&logoColor=white)
 
 # AWS Observability Solutions
 
@@ -24,12 +24,12 @@ To ensure comprehensive version tracking, it's essential to monitor both the Inf
 [View AWS Lambda Inspector Documentation](AWSLambdaInspector/README.md)
 
 ### 3. Grafana CloudWatch Key Rotator
-An automated solution for rotating AWS access keys used by Grafana CloudWatch data sources, ensuring secure and up-to-date cbrightgreenentials.
+An automated solution for rotating AWS access keys used by Grafana CloudWatch data sources, ensuring secure and up-to-date cgreenentials.
 
 [View Grafana CloudWatch Key Rotator Documentation](GrafanaCloudWatchKeyRotator/README.md)
 
 ### 4. AWS Trusted Advisor
-Integration with AWS Trusted Advisor to monitor and alert on AWS best practices, cost optimization, security, and performance recommendations. To use AWS Trusted Advisor, you must have an AWS Support plan. The minimum requibrightgreen plan is the Developer Support tier.
+Integration with AWS Trusted Advisor to monitor and alert on AWS best practices, cost optimization, security, and performance recommendations. To use AWS Trusted Advisor, you must have an AWS Support plan. The minimum requigreen plan is the Developer Support tier.
 
 [View AWS Trusted Advisor Documentation](AWSTrustedAdvisor/README.md)
 
