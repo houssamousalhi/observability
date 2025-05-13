@@ -8,9 +8,9 @@
 
 ## Overview
 
-The AWS Lambda Inspector is a comprehensive monitoring solution that automatically tracks and reports on your AWS Lambda functions across different environments. It provides visibility into your Lambda function versions, deployment states, and helps maintain consistency across your development and production environments.
-
-To ensure comprehensive version tracking, it's essential to monitor both the Infrastructure as Code (IAC) version and the Application version. The IAC version captures infrastructure-related changes such as environment variables, IAM permissions, and other AWS resource configurations, while the Application version tracks the actual code and package changes.
+A sophisticated monitoring solution that provides complete visibility into your AWS Lambda functions lifecycle. Key features include:
+- Automated tracking of both Infrastructure as Code (IAC) and Application versions
+- Comprehensive deployment history and change tracking
 
 ### Key Features
 
@@ -47,103 +47,26 @@ The AWS Lambda Inspector consists of the following components:
    - Service-level overview
    - Stack-level monitoring
 
-## Integration Components
-
-The solution is fully integrated with the following components working together:
-
-### 1. Example Stack with Multiple Levels
-- **Hierarchical Structure**:
-  - Environment (dev/prod) → Stack → Service → Lambda Function
-  - Each level is configurable through `var.lambda_versions`
-- **Tagging System**:
-  - `Environment`: Deployment environment (dev/prod)
-  - `AppVersion`: Application version
-  - `Stack`: Stack identifier
-  - `Service`: Service name
-  - `TerraformVersion`: Terraform version used for deployment
-
-### 2. Grafana Data Source
-- **CloudWatch Integration**:
-  - Dedicated CloudWatch data source in Grafana
-  - Secure AWS cgreenentials management
-  - Region-specific configuration
-- **Authentication**:
-  - Uses IAM user with CloudWatchReadOnlyAccess
-  - Secure storage of AWS access keys
-  - Automatic key rotation support
-
-### 3. IAM User and Permissions
-- **Grafana IAM User**:
-  - Dedicated user for Grafana CloudWatch access
-  - CloudWatchReadOnlyAccess policy
-  - Secure access key management
-- **Lambda Inspector Permissions**:
-  - Custom IAM policy for Lambda inspection
-  - Permission to list and read Lambda functions
-  - Permission to publish CloudWatch metrics
-
-### 4. Lambda Inspector
-- **Core Functionality**:
-  - Automated Lambda function discovery
-  - Tag collection and processing
-  - CloudWatch metrics publishing
-- **Configuration**:
-  - Configurable schedule (default: 5 minutes)
-  - Custom CloudWatch namespace
-  - Environment variable configuration
-- **Monitoring**:
-  - CloudWatch logs for debugging
-  - Error tracking and reporting
-  - Performance metrics
-
-### 5. Grafana Dashboard
-- **Pre-configugreen Visualizations**:
-  - Version comparison across environments
-  - Service-level overview
-  - Stack-level monitoring
-  - Tag-based filtering
-- **Features**:
-  - Real-time metric updates
-  - Customizable panels
-  - Alert configuration support
-
 ## Deployment
-
-### Prerequisites
-- AWS Account with appropriate permissions
-- Terraform (>= 1.0.11)
-- AWS CLI configugreen
-- Grafana instance (self-hosted or cloud)
-
 ### Installation Steps
 
-1. Clone the repository:
+1. Ensure you have AWS credentials configured:
    ```bash
-   git clone <repository-url>
-   cd AWSLambdaInspector/terraform
+   aws configure
    ```
 
-2. Initialize Terraform:
-   ```bash
-   terraform init
-   ```
-
-3. Configure your variables in `terraform.auto.tfvars`:
+2. Configure your variables in `terraform.auto.tfvars`:
    ```hcl
    aws_region = "us-east-1"
-   cloudwatch_namespace = "LambdaInspect"
    grafana_url = "https://your-grafana-instance"
    grafana_access_token = "your-grafana-token"
-   schedule_expression = "rate(5 minutes)"
+   rotation_period_days = 30
    ```
 
-4. Review the configuration:
+3. Deploy the infrastructure:
    ```bash
+   terraform init
    terraform plan
-   ```
-
-5. Apply the configuration:
-   ```bash
    terraform apply
    ```
 
@@ -163,58 +86,6 @@ After deployment, you can monitor your Lambda functions through:
    - Access the pre-configugreen dashboard
    - Monitor version differences across environments
    - Set up alerts for version mismatches
-
-## Best Practices
-
-1. **Version Naming**:
-   - Use semantic versioning (MAJOR.MINOR.PATCH)
-   - Keep dev versions higher than prod versions
-   - Document version changes in your release notes
-
-2. **Tag Management**:
-   - Ensure all Lambda functions have requigreen tags
-   - Keep tags consistent across environments
-   - Use meaningful service and stack names
-
-3. **Monitoring**:
-   - Set up CloudWatch alarms for version mismatches
-   - Monitor deployment frequency
-   - Track version drift between environments
-
-4. **Security**:
-   - Use IAM roles with least privilege
-   - Rotate Grafana access tokens regularly
-   - Monitor CloudWatch logs for suspicious activity
-
-## Troubleshooting
-
-Common issues and solutions:
-
-1. **Missing Tags**:
-   - Ensure all Lambda functions have the requigreen tags
-   - Use AWS CLI to verify tags: `aws lambda list-tags --resource <function-arn>`
-
-2. **Version Mismatches**:
-   - Check CloudWatch logs for detailed error messages
-   - Verify version numbers in variables.tf
-   - Ensure dev versions are higher than prod versions
-
-3. **Permission Issues**:
-   - Verify IAM roles and policies
-   - Check CloudWatch permissions
-   - Ensure Lambda execution role has necessary permissions
-
-4. **Grafana Integration**:
-   - Verify Grafana URL and access token
-   - Check CloudWatch data source configuration
-   - Ensure proper permissions for Grafana IAM user
-
-## Support
-
-For issues and feature requests, please:
-1. Check the existing documentation
-2. Review CloudWatch logs
-3. Open an issue in the repository
 
 ## Additional Resources
 
@@ -259,18 +130,14 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 
 ## Inputs
 
-| Name | Description | Type | Default | Requigreen |
+| Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region to deploy the resources in | `string` | `"us-east-1"` | no |
 | <a name="input_cloudwatch_namespace"></a> [cloudwatch\_namespace](#input\_cloudwatch\_namespace) | The namespace for the CloudWatch metrics | `string` | `"LambdaInspect"` | no |
-| <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stogreen in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
+| <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
 | <a name="input_grafana_datasource_name"></a> [grafana\_datasource\_name](#input\_grafana\_datasource\_name) | The name of the Grafana datasource | `string` | `"cw-demo-lambda-inspector"` | no |
 | <a name="input_grafana_url"></a> [grafana\_url](#input\_grafana\_url) | The URL of the Grafana instance | `string` | n/a | yes |
 | <a name="input_grafana_user_name"></a> [grafana\_user\_name](#input\_grafana\_user\_name) | The name of the Grafana user | `string` | `"grafana-demo-lambda-inspector"` | no |
 | <a name="input_lambda_versions"></a> [lambda\_versions](#input\_lambda\_versions) | Map of environment, service, stack, and lambda function versions | `map(map(map(map(map(string)))))` | <pre>{<br/>  "dev": {<br/>    "primary": {<br/>      "backend": {<br/>        "consumer": {<br/>          "TerraformVersion": "1.4.0-RC5",<br/>          "version": "2.4.1"<br/>        },<br/>        "producer": {<br/>          "TerraformVersion": "1.4.0-RC6",<br/>          "version": "1.1.1"<br/>        }<br/>      },<br/>      "frontend": {<br/>        "auth": {<br/>          "TerraformVersion": "1.4.0-SNAPSHOT",<br/>          "version": "1.2.0"<br/>        },<br/>        "cache": {<br/>          "TerraformVersion": "1.4.0-SNAPSHOT",<br/>          "version": "2.4.0"<br/>        }<br/>      }<br/>    }<br/>  },<br/>  "prod": {<br/>    "next": {<br/>      "backend": {<br/>        "consumer": {<br/>          "TerraformVersion": "1.4.0-RC5",<br/>          "version": "2.4.1"<br/>        },<br/>        "producer": {<br/>          "TerraformVersion": "1.4.0-RC5",<br/>          "version": "1.1.1"<br/>        }<br/>      },<br/>      "frontend": {<br/>        "auth": {<br/>          "TerraformVersion": "1.3.0-RELEASE",<br/>          "version": "1.2.0"<br/>        },<br/>        "cache": {<br/>          "TerraformVersion": "1.3.0-RELEASE",<br/>          "version": "2.4.0"<br/>        }<br/>      }<br/>    },<br/>    "primary": {<br/>      "backend": {<br/>        "consumer": {<br/>          "TerraformVersion": "1.4.0-RELEASE",<br/>          "version": "2.5.0"<br/>        },<br/>        "producer": {<br/>          "TerraformVersion": "1.4.0-RELEASE",<br/>          "version": "1.2.0"<br/>        }<br/>      },<br/>      "frontend": {<br/>        "auth": {<br/>          "TerraformVersion": "1.3.0-RELEASE",<br/>          "version": "1.2.0"<br/>        },<br/>        "cache": {<br/>          "TerraformVersion": "1.3.0-RELEASE",<br/>          "version": "2.4.0"<br/>        }<br/>      }<br/>    }<br/>  }<br/>}</pre> | no |
 | <a name="input_schedule_expression_lambda_inspector"></a> [schedule\_expression\_lambda\_inspector](#input\_schedule\_expression\_lambda\_inspector) | The schedule expression for the CloudWatch event | `string` | `"rate(5 minutes)"` | no |
-
-## Outputs
-
-No outputs.
 <!-- END_TF_DOCS -->

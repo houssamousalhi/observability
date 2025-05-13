@@ -13,7 +13,9 @@ To use AWS Trusted Advisor, you must have an AWS Support plan. The minimum requi
 
 ## Overview
 
-This dashboard provides real-time monitoring of AWS Trusted Advisor checks, helping you identify and track potential issues in your AWS infrastructure. It visualizes both critical (Red) and warning (Yellow) issues across various Trusted Advisor categories. The dashboard is specifically configured for the US East (N. Virginia) region (us-east-1).
+A ready-to-use Grafana dashboard that visualizes AWS Trusted Advisor check results. Note: This solution requires an AWS Trusted Advisor subscription with at least the Developer Support tier to function. The dashboard provides:
+- Real-time visualization of Trusted Advisor check results
+- Monitoring of critical (red) and warning (yellow) checks
 
 ### Key Features
 
@@ -24,7 +26,6 @@ This dashboard provides real-time monitoring of AWS Trusted Advisor checks, help
   - Grey: Check not yet performed by AWS
 - **Historical Analysis**: View check history over different time periods
 - **Trend Tracking**: Monitor the evolution of issues over time
-- **Remediation Monitoring**: Track the effectiveness of remediation actions
 - **Pattern Recognition**: Identify recurring patterns in resource issues
 - **Automatic Updates**: Real-time refresh of check status
 - **Customizable Views**: Adjustable time ranges (default: last 7 days)

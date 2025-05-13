@@ -9,94 +9,24 @@
 
 ## Overview
 
-The Grafana CloudWatch Key Rotator is a security and maintenance solution that automatically rotates IAM access keys used by Grafana to access CloudWatch metrics. This ensures your AWS monitoring infrastructure follows security best practices by regularly rotating credentials without manual intervention.
+A security-focused automation tool that manages AWS access keys for Grafana CloudWatch data sources. Features include:
+- Automated key rotation on a configurable schedule
+- Secure key storage and management
+- Seamless integration with Grafana CloudWatch data sources
+- Zero-downtime key rotation process
+- Audit logging for compliance and security tracking
 
-### Key Features
-
-- **Automated Key Rotation**: Automatically rotates IAM access keys on a configurable schedule
-- **Grafana Integration**: Seamlessly updates Grafana data source credentials
-- **CloudWatch Monitoring**: Tracks key age and rotation events
-- **Terraform Implementation**: Easily deployed and managed with Terraform
-- **Secure Key Management**: Uses AWS Secrets Manager and KMS for secure key storage
-- **Configurable Rotation Period**: Set custom rotation schedules (default: 30 days)
-- **Zero-Downtime Rotation**: Maintains continuous Grafana monitoring during rotation
-
-## Architecture
-
-The Grafana CloudWatch Key Rotator consists of the following components:
-
-1. **Rotator Lambda Function**: A Python-based Lambda function that:
-   - Manages IAM access key creation and deletion
-   - Updates Grafana data source credentials
-   - Stores credentials securely in AWS Secrets Manager
-   - Runs on a scheduled basis (configurable via `schedule_expression_iam_key_rotation`)
-
-2. **CloudWatch Event Rule**: Triggers the Rotator Lambda function at regular intervals
-
-3. **AWS Secrets Manager**: Securely stores and manages Grafana API keys and AWS credentials
-
-4. **KMS Key**: Custom KMS key for encryption of sensitive information
-
-5. **IAM User for Grafana**: Dedicated IAM user with CloudWatch read access for Grafana
-
-## Integration Components
-
-The solution is fully integrated with the following components working together:
-
-### 1. IAM User and Permissions
-- **Grafana IAM User**:
-  - Dedicated user for Grafana CloudWatch access
-  - CloudWatchReadOnlyAccess policy
-  - Automatic access key rotation
-
-### 2. KMS Encryption
-- **Custom Master Key**:
-  - Dedicated KMS key for sensitive data encryption
-  - Used to encrypt secrets in AWS Secrets Manager
-  - Controlled access via KMS policy
-
-### 3. Lambda Rotator
-- **Core Functionality**:
-  - Automated IAM key creation and deactivation
-  - Grafana API integration for data source updates
-  - AWS Secrets Manager integration
-- **Configuration**:
-  - Configurable rotation schedule (default: 60 minutes check)
-  - Configurable key age threshold (default: 30 days)
-  - Environment variable configuration
-- **Monitoring**:
-  - CloudWatch logs for debugging
-  - Error tracking and reporting
-  - Key rotation events
-
-### 4. Grafana Integration
-- **Data Source Configuration**:
-  - CloudWatch data source automatic updates
-  - Seamless credential rotation
-  - No monitoring downtime
 
 ## Deployment
 
-### Prerequisites
-- AWS Account with appropriate permissions
-- Terraform (>= 1.0.11)
-- AWS CLI configured
-- Grafana instance (self-hosted or cloud)
-
 ### Installation Steps
 
-1. Clone the repository:
+1. Ensure you have AWS credentials configured:
    ```bash
-   git clone <repository-url>
-   cd GrafanaCloudWatchKeyRotator
+   aws configure
    ```
 
-2. Initialize Terraform:
-   ```bash
-   terraform init
-   ```
-
-3. Configure your variables in `terraform.auto.tfvars`:
+2. Configure your variables in `terraform.auto.tfvars`:
    ```hcl
    aws_region = "us-east-1"
    grafana_url = "https://your-grafana-instance"
@@ -104,76 +34,12 @@ The solution is fully integrated with the following components working together:
    rotation_period_days = 30
    ```
 
-4. Review the configuration:
+3. Deploy the infrastructure:
    ```bash
+   terraform init
    terraform plan
-   ```
-
-5. Apply the configuration:
-   ```bash
    terraform apply
    ```
-
-## Monitoring
-
-After deployment, you can monitor your key rotation through:
-
-1. **CloudWatch Logs**:
-   - Check the logs of the Rotator Lambda function
-   - Monitor for successful rotations and any errors
-
-2. **AWS Secrets Manager**:
-   - View the rotation history of your secrets
-   - Verify the last rotation date
-
-3. **IAM Console**:
-   - Check the access keys for the Grafana IAM user
-   - Verify creation and deletion timestamps
-
-## Best Practices
-
-1. **Rotation Period**:
-   - Set an appropriate rotation period based on your security requirements
-   - Industry standard is 30-90 days
-
-2. **Grafana API Token**:
-   - Store your Grafana API token securely
-   - Consider rotating this token regularly as well
-
-3. **Monitoring**:
-   - Set up CloudWatch alarms for rotation failures
-   - Monitor for unexpected key creation or deletion
-
-4. **Security**:
-   - Use IAM roles with least privilege
-   - Keep the KMS key access restricted
-   - Monitor CloudWatch logs for suspicious activity
-
-## Troubleshooting
-
-Common issues and solutions:
-
-1. **Failed Rotations**:
-   - Check CloudWatch logs for detailed error messages
-   - Verify Grafana API token validity
-   - Ensure Lambda function has necessary permissions
-
-2. **Grafana Connection Issues**:
-   - Verify Grafana URL and access token
-   - Check CloudWatch data source configuration
-   - Ensure proper network connectivity between Lambda and Grafana
-
-3. **Permission Issues**:
-   - Verify IAM roles and policies
-   - Check KMS key permissions
-   - Ensure Lambda execution role has necessary permissions
-
-## Support
-
-For issues and feature requests, please:
-1. Check the existing documentation
-2. Review CloudWatch logs
-3. Open an issue in the repository
 
 ## Additional Resources
 
@@ -230,8 +96,4 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 | <a name="input_lambda_runtime"></a> [lambda\_runtime](#input\_lambda\_runtime) | The runtime of the Lambda function (e.g., python3.13) | `string` | `"python3.13"` | no |
 | <a name="input_rotation_period_days"></a> [rotation\_period\_days](#input\_rotation\_period\_days) | Number of days after which access keys should be rotated | `number` | `30` | no |
 | <a name="input_schedule_expression_iam_key_rotation"></a> [schedule\_expression\_iam\_key\_rotation](#input\_schedule\_expression\_iam\_key\_rotation) | Schedule expression for the CloudWatch event for the iam key rotation | `string` | `"cron(0 8 * * ? *)"` | no |
-
-## Outputs
-
-No outputs.
 <!-- END_TF_DOCS -->
