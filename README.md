@@ -4,6 +4,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/coverage-94.62%25-brightgreen)
+
 # AWS Observability Solutions
 
 This repository contains a collection of AWS observability solutions that help monitor, analyze, and maintain your AWS infrastructure. Each solution is designed to work independently or together to provide comprehensive observability across your AWS environment.

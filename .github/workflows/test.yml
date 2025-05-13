@@ -30,11 +30,6 @@ jobs:
         # Run tests and generate XML report
         python -m pytest --cov=./ --cov-report=term-missing --cov-report=xml
 
-        # Debug: Show XML content
-        echo "=== XML Content ==="
-        cat coverage.xml
-        echo "=== End XML Content ==="
-
         # Function to determine color based on coverage
         get_color() {
           local coverage=$1
@@ -51,17 +46,12 @@ jobs:
 
         # Parse XML coverage report
         while IFS= read -r line; do
-          # Debug: Show each line being processed
-          echo "Processing line: $line"
-          
           if [[ $line =~ filename=\"([^\"]+)\" ]]; then
             filepath="${BASH_REMATCH[1]}"
-            echo "Found filepath: $filepath"
             
             # Extract project name from path
             if [[ $filepath =~ ^([^/]+)/ ]]; then
               project_name="${BASH_REMATCH[1]}"
-              echo "Extracted project name: $project_name"
               
               if [[ $project_name != "tests" && $project_name != "." ]]; then
                 # Get coverage for this file
@@ -69,11 +59,19 @@ jobs:
                   coverage=$(echo "${BASH_REMATCH[1]} * 100" | bc | cut -d. -f1)
                   color=$(get_color $coverage)
                   echo "Found project: $project_name with coverage: $coverage%"
-                  # Add or update project badge
-                  if ! grep -q "$project_name Coverage" README.md; then
-                    sed -i "/^# AWS Observability Solutions/i ![${project_name} Coverage](https://img.shields.io/badge/coverage-${coverage}%25-${color})" README.md
-                  else
-                    sed -i "s/coverage-[0-9.]*%25-${color}/coverage-${coverage}%25-${color}/" README.md
+                  
+                  # Update project's README
+                  project_readme="${project_name}/README.md"
+                  if [ -f "$project_readme" ]; then
+                    # Add or update coverage badge in project README
+                    if ! grep -q "Test Coverage" "$project_readme"; then
+                      # Add badge after the first heading
+                      sed -i "1s/^/![Test Coverage](https:\/\/img.shields.io\/badge\/coverage-${coverage}%25-${color})\n\n/" "$project_readme"
+                    else
+                      # Update existing badge
+                      sed -i "s/coverage-[0-9.]*%25/coverage-${coverage}%25/" "$project_readme"
+                      sed -i "s/brightgreen\|green\|yellow\|red/${color}/" "$project_readme"
+                    fi
                   fi
                 fi
               fi
@@ -82,7 +80,7 @@ jobs:
             total_coverage=$(echo "${BASH_REMATCH[1]} * 100" | bc | cut -d. -f1)
             total_color=$(get_color $total_coverage)
             echo "Total coverage: $total_coverage%"
-            # Update total coverage badge
+            # Update total coverage badge in root README
             sed -i "s/coverage-[0-9.]*%25/coverage-${total_coverage}%25/" README.md
             sed -i "s/brightgreen\|green\|yellow\|red/${total_color}/" README.md
           fi
@@ -92,6 +90,6 @@ jobs:
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add README.md
+        git add README.md */README.md
         git commit -m "Update coverage badges [skip ci]" || exit 0
         git push
