@@ -3,7 +3,7 @@
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Test Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen)
+![Test Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen?style=for-the-badge&logoColor=white)
 
 # AWS Observability Solutions
 
@@ -33,39 +33,6 @@ Integration with AWS Trusted Advisor to monitor and alert on AWS best practices,
 
 [View AWS Trusted Advisor Documentation](AWSTrustedAdvisor/README.md)
 
-## Common Features
-
-All solutions in this repository share the following features:
-
-- **Terraform Integration**: Infrastructure as Code using Terraform
-- **Grafana Integration**: Visual monitoring and alerting capabilities
-- **Security Best Practices**: IAM roles with least privilege
-- **Cost Optimization**: Efficient resource utilization
-- **Automated Deployment**: Streamlined setup and configuration
-
-## Prerequisites
-
-- AWS Account with appropriate permissions
-- Terraform (>= 1.0.11)
-- AWS CLI configubrightgreen
-- Grafana instance (self-hosted or cloud)
-- Python 3.8 or higher (for Lambda functions)
-
-## Getting Started
-
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd observability
-   ```
-
-2. Choose the solution you want to deploy and navigate to its directory:
-   ```bash
-   cd <solution-directory>
-   ```
-
-3. Follow the specific setup instructions in each solution's README.md file.
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -80,10 +47,3 @@ For support, please:
 1. Check the existing documentation
 2. Review the project-specific READMEs
 3. Open an issue in the repository
-
-## Additional Resources
-
-- [AWS Documentation](https://docs.aws.amazon.com/)
-- [Terraform Documentation](https://www.terraform.io/docs/index.html)
-- [Grafana Documentation](https://grafana.com/docs/)
-- [CloudWatch Documentation](https://docs.aws.amazon.com/cloudwatch/)
