@@ -3,6 +3,7 @@
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Test Coverage](https://img.shields.io/badge/coverage-94.62%25-brightgreen)
 # AWS CloudWatch Alarms
 
 ## Overview

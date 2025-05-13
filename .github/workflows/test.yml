@@ -66,23 +66,25 @@ jobs:
                     # Add or update coverage badge in project README
                     if ! grep -q "Test Coverage" "$project_readme"; then
                       # Add badge after the first heading
-                      sed -i "1s/^/![Test Coverage](https:\/\/img.shields.io\/badge\/coverage-${coverage}%25-${color})\n\n/" "$project_readme"
+                      sed -i "1s/^/![Test Coverage](https:\/\/img.shields.io\/badge\/coverage-${coverage}%25-${color}?style=for-the-badge)\n\n/" "$project_readme"
                     else
                       # Update existing badge
                       sed -i "s/coverage-[0-9.]*%25/coverage-${coverage}%25/" "$project_readme"
                       sed -i "s/brightgreen\|green\|yellow\|red/${color}/" "$project_readme"
+                      sed -i "s/badge\/coverage/badge\/coverage?style=for-the-badge/" "$project_readme"
                     fi
                   fi
                 fi
               fi
             fi
-          elif [[ $line =~ line-rate=\"([^\"]+)\" && $line =~ name=\"TOTAL\" ]]; then
+          elif [[ $line =~ ^\<coverage.*line-rate=\"([^\"]+)\" ]]; then
             total_coverage=$(echo "${BASH_REMATCH[1]} * 100" | bc | cut -d. -f1)
             total_color=$(get_color $total_coverage)
             echo "Total coverage: $total_coverage%"
             # Update total coverage badge in root README
             sed -i "s/coverage-[0-9.]*%25/coverage-${total_coverage}%25/" README.md
             sed -i "s/brightgreen\|green\|yellow\|red/${total_color}/" README.md
+            sed -i "s/badge\/coverage/badge\/coverage?style=for-the-badge/" README.md
           fi
         done < coverage.xml
 
