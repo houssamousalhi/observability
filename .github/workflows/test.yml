@@ -69,6 +69,7 @@ jobs:
                       sed -i "1s/^/![Test Coverage](https:\/\/img.shields.io\/badge\/coverage-${coverage}%25-${color}?style=for-the-badge)\n\n/" "$project_readme"
                     else
                       # Update existing badge
+                      echo "Updating badge in $project_readme"
                       sed -i "s/coverage-[0-9.]*%25/coverage-${coverage}%25/" "$project_readme"
                       sed -i "s/brightgreen\|green\|yellow\|red/${color}/" "$project_readme"
                       sed -i "s/badge\/coverage/badge\/coverage?style=for-the-badge/" "$project_readme"
