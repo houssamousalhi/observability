@@ -3,7 +3,7 @@
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Test Coverage](https://img.shields.io/badge/coverage-94.62%25-brightgreen)
+![Test Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen)
 # AWS CloudWatch Alarms
 
 ## Overview
@@ -28,7 +28,7 @@ The AWS CloudWatch Alarms solution provides a comprehensive monitoring and alert
 
 The AWS CloudWatch Alarms solution consists of the following components:
 
-1. **CloudWatch Alarms**: Configured to monitor specific metrics with:
+1. **CloudWatch Alarms**: Configubrightgreen to monitor specific metrics with:
    - Custom thresholds and evaluation periods
    - Multiple alarm states (OK, ALARM, INSUFFICIENT_DATA)
    - Configurable actions for each state
@@ -69,11 +69,11 @@ The AWS CloudWatch Alarms solution consists of the following components:
 ### 2. Grafana Data Source
 - **CloudWatch Integration**:
   - Dedicated CloudWatch data source
-  - Secure AWS credentials management
+  - Secure AWS cbrightgreenentials management
   - Region-specific configuration
 - **Authentication**:
   - IAM role-based access
-  - Secure credential storage
+  - Secure cbrightgreenential storage
   - Cross-account access support
 
 ### 3. IAM Permissions
@@ -101,7 +101,7 @@ The AWS CloudWatch Alarms solution consists of the following components:
 ### Prerequisites
 - AWS Account with appropriate permissions
 - Terraform (>= 1.0.11)
-- AWS CLI configured
+- AWS CLI configubrightgreen
 - Grafana instance (self-hosted or cloud)
 - Python 3.8 or higher
 - pip (Python package installer)
@@ -298,11 +298,11 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 
 ## Inputs
 
-| Name | Description | Type | Default | Required |
+| Name | Description | Type | Default | Requibrightgreen |
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region to deploy the resources in | `string` | `"us-east-1"` | no |
 | <a name="input_cloudwatch_namespace"></a> [cloudwatch\_namespace](#input\_cloudwatch\_namespace) | The namespace for the CloudWatch metrics | `string` | `"CloudWatchAlarmsDemo"` | no |
-| <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
+| <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stobrightgreen in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
 | <a name="input_grafana_contact_point_email"></a> [grafana\_contact\_point\_email](#input\_grafana\_contact\_point\_email) | The email address for the Grafana contact point | `string` | n/a | yes |
 | <a name="input_grafana_datasource_name"></a> [grafana\_datasource\_name](#input\_grafana\_datasource\_name) | The name of the Grafana datasource | `string` | `"cw-alarm-demo"` | no |
 | <a name="input_grafana_url"></a> [grafana\_url](#input\_grafana\_url) | The URL of the Grafana instance | `string` | n/a | yes |

@@ -3,7 +3,7 @@
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Test Coverage](https://img.shields.io/badge/coverage-94.62%25-brightgreen)
+![Test Coverage](https://img.shields.io/badge/coverage-89%25-green)
 # AWS Lambda Inspector
 
 ## Overview
@@ -65,7 +65,7 @@ The solution is fully integrated with the following components working together:
 ### 2. Grafana Data Source
 - **CloudWatch Integration**:
   - Dedicated CloudWatch data source in Grafana
-  - Secure AWS credentials management
+  - Secure AWS cgreenentials management
   - Region-specific configuration
 - **Authentication**:
   - Uses IAM user with CloudWatchReadOnlyAccess
@@ -97,7 +97,7 @@ The solution is fully integrated with the following components working together:
   - Performance metrics
 
 ### 5. Grafana Dashboard
-- **Pre-configured Visualizations**:
+- **Pre-configugreen Visualizations**:
   - Version comparison across environments
   - Service-level overview
   - Stack-level monitoring
@@ -112,7 +112,7 @@ The solution is fully integrated with the following components working together:
 ### Prerequisites
 - AWS Account with appropriate permissions
 - Terraform (>= 1.0.11)
-- AWS CLI configured
+- AWS CLI configugreen
 - Grafana instance (self-hosted or cloud)
 
 ### Installation Steps
@@ -160,7 +160,7 @@ After deployment, you can monitor your Lambda functions through:
    - Monitor for any errors or version mismatches
 
 3. **Grafana Dashboard**:
-   - Access the pre-configured dashboard
+   - Access the pre-configugreen dashboard
    - Monitor version differences across environments
    - Set up alerts for version mismatches
 
@@ -172,7 +172,7 @@ After deployment, you can monitor your Lambda functions through:
    - Document version changes in your release notes
 
 2. **Tag Management**:
-   - Ensure all Lambda functions have required tags
+   - Ensure all Lambda functions have requigreen tags
    - Keep tags consistent across environments
    - Use meaningful service and stack names
 
@@ -191,7 +191,7 @@ After deployment, you can monitor your Lambda functions through:
 Common issues and solutions:
 
 1. **Missing Tags**:
-   - Ensure all Lambda functions have the required tags
+   - Ensure all Lambda functions have the requigreen tags
    - Use AWS CLI to verify tags: `aws lambda list-tags --resource <function-arn>`
 
 2. **Version Mismatches**:
@@ -259,11 +259,11 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 
 ## Inputs
 
-| Name | Description | Type | Default | Required |
+| Name | Description | Type | Default | Requigreen |
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region to deploy the resources in | `string` | `"us-east-1"` | no |
 | <a name="input_cloudwatch_namespace"></a> [cloudwatch\_namespace](#input\_cloudwatch\_namespace) | The namespace for the CloudWatch metrics | `string` | `"LambdaInspect"` | no |
-| <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
+| <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stogreen in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
 | <a name="input_grafana_datasource_name"></a> [grafana\_datasource\_name](#input\_grafana\_datasource\_name) | The name of the Grafana datasource | `string` | `"cw-demo-lambda-inspector"` | no |
 | <a name="input_grafana_url"></a> [grafana\_url](#input\_grafana\_url) | The URL of the Grafana instance | `string` | n/a | yes |
 | <a name="input_grafana_user_name"></a> [grafana\_user\_name](#input\_grafana\_user\_name) | The name of the Grafana user | `string` | `"grafana-demo-lambda-inspector"` | no |
