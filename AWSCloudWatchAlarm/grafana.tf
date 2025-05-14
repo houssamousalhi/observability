@@ -79,8 +79,8 @@ resource "grafana_contact_point" "default" {
 resource "grafana_notification_policy" "default" {
   contact_point   = grafana_contact_point.default.name
   group_by        = ["alertname"]
-  group_wait      = "30s"
-  group_interval  = "1m"
+  group_wait      = "1s"
+  group_interval  = "1s"
   repeat_interval = "4h"
 }
 
@@ -98,7 +98,7 @@ resource "grafana_rule_group" "cloudwatch_alarm" {
     data {
       ref_id = "A"
       relative_time_range {
-        from = 60 # 1 minute
+        from = 60 # 1 minute very short to detect early alarm
         to   = 0
       }
       datasource_uid = grafana_data_source.cloudwatch.uid
@@ -120,7 +120,6 @@ resource "grafana_rule_group" "cloudwatch_alarm" {
         metricName       = "ActiveAlarm"
         metricQueryType  = 0
         namespace        = var.cloudwatch_namespace
-        period           = "60"
         queryLanguage    = "CWLI"
         queryMode        = "Metrics"
         range            = false
@@ -162,8 +161,8 @@ resource "grafana_rule_group" "cloudwatch_alarm" {
         conditions = [
           {
             evaluator = {
-              params = [0]
-              type   = "gt"
+              params = [1]
+              type   = "eq"
             }
           }
         ]
