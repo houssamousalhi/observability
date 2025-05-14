@@ -52,10 +52,27 @@ resource "grafana_dashboard" "cloudwatch_alarm" {
 resource "grafana_contact_point" "default" {
   name = "default"
 
-  email {
-    addresses = [var.grafana_contact_point_email]
-    message   = "{{ template \"default.message\" . }}"
-    subject   = "{{ template \"default.title\" . }}"
+  dynamic "email" {
+    for_each = var.grafana_contact_point_email != "" ? [1] : []
+    content {
+      addresses = [var.grafana_contact_point_email]
+      message   = "{{ template \"default.message\" . }}"
+      subject   = "{{ template \"default.title\" . }}"
+    }
+  }
+
+  dynamic "googlechat" {
+    for_each = var.grafana_contact_point_googlechat_url != "" ? [1] : []
+    content {
+      url = var.grafana_contact_point_googlechat_url
+    }
+  }
+
+  dynamic "slack" {
+    for_each = var.grafana_contact_point_slack_url != "" ? [1] : []
+    content {
+      url = var.grafana_contact_point_slack_url
+    }
   }
 }
 

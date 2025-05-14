@@ -19,7 +19,7 @@ module "lambda_rotate_iam_keys" {
   number_of_policy_jsons            = 1
   policy_jsons                      = [data.template_file.lambda_policy_rotate_iam_keys.rendered]
   policies                          = ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"]
-  cloudwatch_logs_retention_in_days = 30
+  cloudwatch_logs_retention_in_days = 1
   environment_variables = {
     IAM_USERNAME            = aws_iam_user.grafana.name
     GRAFANA_API_KEY_PATH    = aws_secretsmanager_secret.grafana_api_key.name

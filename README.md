@@ -17,6 +17,10 @@ A comprehensive AWS observability solution that centralizes all CloudWatch alarm
 - A unified dashboard for monitoring alarms across all AWS services
 - Customizable alerting rules and notification channels
 - Real-time visibility into your AWS infrastructure health
+- Multi-channel notifications through:
+  - Email alerts with detailed HTML formatting
+  - Slack integration for team collaboration
+  - Google Chat integration for workspace communication
 
 [View Documentation](AWSCloudWatchAlarm/README.md)
 

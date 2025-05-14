@@ -41,7 +41,7 @@ module "lambda_example" {
   attach_policy_jsons               = true
   number_of_policies                = 1
   policies                          = ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"]
-  cloudwatch_logs_retention_in_days = 30
+  cloudwatch_logs_retention_in_days = 1
   create_lambda_function_url        = false
   function_tags = {
     "Environment"      = each.value.env
@@ -72,7 +72,7 @@ module "lambda_app_inspector" {
   number_of_policy_jsons            = 1
   policy_jsons                      = [data.template_file.lambda_policy_app_inspector.rendered]
   policies                          = ["arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"]
-  cloudwatch_logs_retention_in_days = 30
+  cloudwatch_logs_retention_in_days = 1
   create_lambda_function_url        = false
   allowed_triggers = {
     ScrappingRule = {

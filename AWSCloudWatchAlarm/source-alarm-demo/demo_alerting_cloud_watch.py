@@ -212,20 +212,20 @@ class CloudWatchWrapper:
                     )
             time.sleep(period)  # Wait one period between data points
 
-    def trigger_random_alerts(self, services, period, count=1):
+    def trigger_random_alerts(self, services, period, nb_alerts=1):
         """
         Randomly triggers alerts for different services.
 
         :param services: Dictionary of services and their configurations
         :param period: The period to wait between alerts
-        :param count: Number of random alerts to trigger
+        :param nb_alerts: Number of random alerts to trigger
         """
         print("\nTriggering random alerts...")
         print("=" * 50)
         print("Alert Schedule:")
         print("=" * 50)
 
-        for i in range(count):
+        for i in range(nb_alerts):
             # Randomly select a service
             namespace = random.choice(list(services.keys()))
             config = random.choice(services[namespace])
@@ -475,7 +475,7 @@ def usage_demo():
     cw_wrapper.set_alarms_to_ok_state(services, period, count=1)
 
     # Trigger random alerts
-    cw_wrapper.trigger_random_alerts(services, period, count=2)
+    cw_wrapper.trigger_random_alerts(services, period, nb_alerts=2)
 
     # Return alarms to OK state
     cw_wrapper.set_alarms_to_ok_state(services, period, count=2)

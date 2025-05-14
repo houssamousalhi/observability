@@ -47,4 +47,17 @@ variable "grafana_user_name" {
 variable "grafana_contact_point_email" {
   description = "The email address for the Grafana contact point"
   type        = string
+  default     = ""
+}
+
+variable "grafana_contact_point_googlechat_url" {
+  description = "The googlechat url for the Grafana contact point"
+  type        = string
+  default     = ""
+}
+
+variable "grafana_contact_point_slack_url" {
+  description = "The slack url for the Grafana contact point, (String, Sensitive) A Slack webhook URL,for sending messages via the webhook method."
+  type        = string
+  default     = ""
 }

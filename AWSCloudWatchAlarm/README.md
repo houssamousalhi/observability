@@ -13,6 +13,10 @@ A comprehensive AWS observability solution that centralizes all CloudWatch alarm
 - A unified dashboard for monitoring alarms across all AWS services
 - Customizable alerting rules and notification channels
 - Real-time visibility into your AWS infrastructure health
+- Multi-channel notifications through:
+  - Email alerts with detailed HTML formatting
+  - Slack integration for team collaboration
+  - Google Chat integration for workspace communication
 
 ### Visual Overview
 
@@ -32,6 +36,11 @@ A comprehensive AWS observability solution that centralizes all CloudWatch alarm
    grafana_url = "https://your-grafana-instance"
    grafana_access_token = "your-grafana-token"
    rotation_period_days = 30
+   
+   # Notification channels (optional)
+   grafana_contact_point_email = "your-email@example.com"  # For email notifications
+   grafana_contact_point_slack_url = "https://hooks.slack.com/services/..."  # For Slack notifications
+   grafana_contact_point_googlechat_url = "https://chat.googleapis.com/v1/spaces/..."  # For Google Chat notifications
    ```
 
 3. Deploy the infrastructure:
@@ -40,6 +49,35 @@ A comprehensive AWS observability solution that centralizes all CloudWatch alarm
    terraform plan
    terraform apply
    ```
+
+### Notification Channels
+
+The project supports multiple notification channels through Grafana:
+
+1. **Email Notifications**
+   - Configure your email address in `terraform.auto.tfvars`
+   - Alerts will be sent to the specified email address
+   - Supports HTML formatting and includes detailed alert information
+
+2. **Slack Integration**
+   - Configure your Slack webhook URL in `terraform.auto.tfvars`
+   - Alerts will be posted to the specified Slack channel
+   - Includes alert details, severity, and links to the Grafana dashboard
+
+3. **Google Chat Integration**
+   - Configure your Google Chat webhook URL in `terraform.auto.tfvars`
+   - Alerts will be posted to the specified Google Chat space
+   - Includes alert details and links to the Grafana dashboard
+
+To set up these integrations:
+1. For Slack: Create a new webhook in your Slack workspace and copy the webhook URL
+2. For Google Chat: Create a new webhook in your Google Chat space and copy the webhook URL
+3. For Email: Simply provide your email address
+
+### Demo
+```bash
+python source-alarm-demo/demo_alerting_cloud_watch.py
+```
 
 ## Additional Resources
 
@@ -91,7 +129,9 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region to deploy the resources in | `string` | `"us-east-1"` | no |
 | <a name="input_cloudwatch_namespace"></a> [cloudwatch\_namespace](#input\_cloudwatch\_namespace) | The namespace for the CloudWatch metrics | `string` | `"CloudWatchAlarmsDemo"` | no |
 | <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
-| <a name="input_grafana_contact_point_email"></a> [grafana\_contact\_point\_email](#input\_grafana\_contact\_point\_email) | The email address for the Grafana contact point | `string` | n/a | yes |
+| <a name="input_grafana_contact_point_email"></a> [grafana\_contact\_point\_email](#input\_grafana\_contact\_point\_email) | The email address for the Grafana contact point | `string` | `""` | no |
+| <a name="input_grafana_contact_point_googlechat_url"></a> [grafana\_contact\_point\_googlechat\_url](#input\_grafana\_contact\_point\_googlechat\_url) | The googlechat url for the Grafana contact point | `string` | `""` | no |
+| <a name="input_grafana_contact_point_slack_url"></a> [grafana\_contact\_point\_slack\_url](#input\_grafana\_contact\_point\_slack\_url) | The slack url for the Grafana contact point, (String, Sensitive) A Slack webhook URL,for sending messages via the webhook method. | `string` | `""` | no |
 | <a name="input_grafana_datasource_name"></a> [grafana\_datasource\_name](#input\_grafana\_datasource\_name) | The name of the Grafana datasource | `string` | `"cw-alarm-demo"` | no |
 | <a name="input_grafana_url"></a> [grafana\_url](#input\_grafana\_url) | The URL of the Grafana instance | `string` | n/a | yes |
 | <a name="input_grafana_user_name"></a> [grafana\_user\_name](#input\_grafana\_user\_name) | The name of the Grafana user | `string` | `"grafana-cloudwatch-alarm-demo"` | no |
