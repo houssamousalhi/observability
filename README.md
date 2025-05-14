@@ -44,7 +44,7 @@ A security-focused automation tool that manages AWS access keys for Grafana Clou
 ### 4. AWS Trusted Advisor
 A ready-to-use Grafana dashboard that visualizes AWS Trusted Advisor check results. Note: This solution requires an AWS Trusted Advisor subscription with at least the Developer Support tier to function. The dashboard provides:
 - Real-time visualization of Trusted Advisor check results
-- Monitoring of critical (red) and warning (yellow) checks
+- Monitoring of critical (green) and warning (yellow) checks
 
 [View Documentation](AWSTrustedAdvisor/README.md)
 
