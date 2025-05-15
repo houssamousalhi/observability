@@ -6,6 +6,7 @@ variable "grafana_url" {
 variable "grafana_access_token" {
   description = "The access token for the Grafana instance"
   type        = string
+  sensitive   = true
 }
 
 variable "grafana_contact_point_email" {
@@ -24,4 +25,5 @@ variable "grafana_contact_point_slack_url" {
   description = "The slack url for the Grafana contact point"
   type        = string
   default     = ""
+  sensitive   = true
 }

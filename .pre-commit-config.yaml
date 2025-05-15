@@ -13,50 +13,36 @@ repos:
       - id: black
         language_version: python3
 
-  - repo: local
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.97.4
     hooks:
       - id: terraform_fmt
-        name: Terraform FMT
-        entry: bash -c 'DOCKER_BUILDKIT=1 docker run --rm -v "$(pwd):/workspace" -w /workspace hashicorp/terraform:1.6.0 fmt -check -recursive'
-        language: system
-        types: [terraform]
-        pass_filenames: false
-
+        name: Local Terraform FMT
       - id: terraform_validate
-        name: Terraform Validate
-        entry: bash -c 'DOCKER_BUILDKIT=1 docker run --rm -v "$(pwd):/workspace" -w /workspace hashicorp/terraform:1.6.0 init -backend=false && DOCKER_BUILDKIT=1 docker run --rm -v "$(pwd):/workspace" -w /workspace hashicorp/terraform:1.6.0 validate'
-        language: system
-        types: [terraform]
-        pass_filenames: false
-
+        name: Local Terraform Validate
       - id: terraform_docs
-        name: Terraform Docs
-        entry: bash -c 'DOCKER_BUILDKIT=1 docker run --rm -v "$(pwd):/workspace" -w /workspace quay.io/terraform-docs/terraform-docs:0.16.0 markdown .'
-        language: system
-        types: [terraform]
-        pass_filenames: false
-
+        name: Local Terraform Docs
+        args:
+          - '--args=--hide providers,outputs'
       - id: terraform_tflint
-        name: Terraform TFLint
-        entry: bash -c 'DOCKER_BUILDKIT=1 docker run --rm -v "$(pwd):/workspace" -w /workspace ghcr.io/terraform-linters/tflint:v0.48.0'
-        language: system
-        types: [terraform]
-        pass_filenames: false
-
+        name: Local Terraform TFLint
+        args:
+          - 'args=--deep'
       - id: terraform_trivy
-        name: Terraform Trivy
-        entry: bash -c 'DOCKER_BUILDKIT=1 docker run --rm -v "$(pwd):/workspace" -w /workspace aquasec/trivy:0.44.0 fs . --skip-dirs='.terraform/modules,**/.terraform/modules' --tf-exclude-downloaded-modules --severity MEDIUM,HIGH,CRITICAL'
-        language: system
-        types: [terraform]
-        pass_filenames: false
-
+        name: Local Terraform Trivy
+        args:
+          - --args=--skip-dirs=.terraform/modules,**/.terraform/modules
+          - --args=--tf-exclude-downloaded-modules
+          - --args=--severity=MEDIUM,HIGH,CRITICAL
+          - --args=--exit-code=1
       - id: terraform_checkov
-        name: Terraform Checkov
-        entry: bash -c 'DOCKER_BUILDKIT=1 docker run --rm -v "$(pwd):/workspace" -w /workspace bridgecrew/checkov:2.4.9 --quiet --check MEDIUM'
-        language: system
-        types: [terraform]
-        pass_filenames: false
-        
+        name: Local Terraform Checkov
+        args:
+         - --args=--quiet
+         - --args=--check MEDIUM
+
+  - repo: local
+    hooks:
       - id: pytest
         name: pytest
         entry: pytest -v -s --tb=long --showlocals --cov=./ --cov-report=term-missing
@@ -64,3 +50,4 @@ repos:
         types: [python]
         pass_filenames: false
         verbose: true
+ 

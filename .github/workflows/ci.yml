@@ -31,7 +31,7 @@ jobs:
       - name: Run pre-commit
         id: pre-commit
         run: |
-          SKIP=pytest,black pre-commit run --all-files
+          pre-commit run --all-files --config .pre-commit-ci.yaml
           result=$?
           echo "Debug: Pre-commit exit code: $result"
           echo "terraform_fmt=$([ $result -eq 0 ] && echo 'passed' || echo 'failed')" >> $GITHUB_OUTPUT
