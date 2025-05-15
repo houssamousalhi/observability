@@ -7,6 +7,12 @@
 
 ## Pre-commit-checks
 
+![terraform_checkov](https://img.shields.io/badge/terraform_checkov-passed-brightgreen)
+![terraform_trivy](https://img.shields.io/badge/terraform_trivy-passed-brightgreen)
+![terraform_tflint](https://img.shields.io/badge/terraform_tflint-passed-brightgreen)
+![terraform_docs](https://img.shields.io/badge/terraform_docs-passed-brightgreen)
+![terraform_validate](https://img.shields.io/badge/terraform_validate-passed-brightgreen)
+![terraform_fmt](https://img.shields.io/badge/terraform_fmt-passed-brightgreen)
 
 # AWS Observability Solutions
 

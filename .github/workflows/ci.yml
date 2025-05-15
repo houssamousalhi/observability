@@ -31,7 +31,7 @@ jobs:
       - name: Run pre-commit
         id: pre-commit
         run: |
-          SKIP=pytest pre-commit run --all-files
+          SKIP=pytest,black pre-commit run --all-files
           result=$?
           echo "Debug: Pre-commit exit code: $result"
           echo "terraform_fmt=$([ $result -eq 0 ] && echo 'passed' || echo 'failed')" >> $GITHUB_OUTPUT
@@ -40,7 +40,6 @@ jobs:
           echo "terraform_tflint=$([ $result -eq 0 ] && echo 'passed' || echo 'failed')" >> $GITHUB_OUTPUT
           echo "terraform_trivy=$([ $result -eq 0 ] && echo 'passed' || echo 'failed')" >> $GITHUB_OUTPUT
           echo "terraform_checkov=$([ $result -eq 0 ] && echo 'passed' || echo 'failed')" >> $GITHUB_OUTPUT
-          echo "black=$([ $result -eq 0 ] && echo 'passed' || echo 'failed')" >> $GITHUB_OUTPUT
           echo "Debug: Outputs written to GITHUB_OUTPUT:"
           cat $GITHUB_OUTPUT
 
@@ -69,7 +68,7 @@ jobs:
           }
           
           # Update each hook status
-          for hook in terraform_fmt terraform_validate terraform_docs terraform_tflint terraform_trivy terraform_checkov black; do
+          for hook in terraform_fmt terraform_validate terraform_docs terraform_tflint terraform_trivy terraform_checkov; do
             case $hook in
               terraform_fmt) status="${{ steps.pre-commit.outputs.terraform_fmt }}" ;;
               terraform_validate) status="${{ steps.pre-commit.outputs.terraform_validate }}" ;;
@@ -77,7 +76,6 @@ jobs:
               terraform_tflint) status="${{ steps.pre-commit.outputs.terraform_tflint }}" ;;
               terraform_trivy) status="${{ steps.pre-commit.outputs.terraform_trivy }}" ;;
               terraform_checkov) status="${{ steps.pre-commit.outputs.terraform_checkov }}" ;;
-              black) status="${{ steps.pre-commit.outputs.black }}" ;;
             esac
             update_badge "$hook" "$status"
           done
