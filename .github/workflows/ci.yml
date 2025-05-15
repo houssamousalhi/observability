@@ -89,7 +89,7 @@ jobs:
           git pull --rebase origin main
           git stash pop || true
           git add README.md
-          git commit -m "Update pre-commit hook badges" || exit 0
+          git commit -m "Update pre-commit hook badges [skip ci]" || exit 0
           git push
 
   test:
