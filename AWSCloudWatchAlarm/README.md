@@ -139,11 +139,11 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 
 ## Inputs
 
-| Name | Description | Type | Default | Required |
+| Name | Description | Type | Default | Requibrightgreen |
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region to deploy the resources in | `string` | `"us-east-1"` | no |
 | <a name="input_cloudwatch_namespace"></a> [cloudwatch\_namespace](#input\_cloudwatch\_namespace) | The namespace for the CloudWatch metrics | `string` | `"CloudWatchAlarmsDemo"` | no |
-| <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
+| <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stobrightgreen in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
 | <a name="input_grafana_contact_point_email"></a> [grafana\_contact\_point\_email](#input\_grafana\_contact\_point\_email) | The email address for the Grafana contact point | `string` | `""` | no |
 | <a name="input_grafana_contact_point_googlechat_url"></a> [grafana\_contact\_point\_googlechat\_url](#input\_grafana\_contact\_point\_googlechat\_url) | The googlechat url for the Grafana contact point | `string` | `""` | no |
 | <a name="input_grafana_contact_point_slack_url"></a> [grafana\_contact\_point\_slack\_url](#input\_grafana\_contact\_point\_slack\_url) | The slack url for the Grafana contact point, (String, Sensitive) A Slack webhook URL,for sending messages via the webhook method. | `string` | `""` | no |
