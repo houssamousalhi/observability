@@ -7,14 +7,14 @@
 
 ## Pre-commit-checks
 
-![terraform_fmt](https://img.shields.io/badge/terraform_fmt-pending-lightgrey) 
-![terraform_validate](https://img.shields.io/badge/terraform_validate-pending-lightgrey)
-![terraform_docs](https://img.shields.io/badge/terraform_docs-pending-lightgrey)
-![terraform_tflint](https://img.shields.io/badge/terraform_tflint-pending-lightgrey)
-![terraform_trivy](https://img.shields.io/badge/terraform_trivy-pending-lightgrey)
-![terraform_checkov](https://img.shields.io/badge/terraform_checkov-pending-lightgrey)
-![black](https://img.shields.io/badge/black-pending-lightgrey)
-![pytest](https://img.shields.io/badge/pytest-pending-lightgrey)
+![terraform_fmt](https://img.shields.io/badge/terraform_fmt-passed-brightgreen)
+![terraform_validate](https://img.shields.io/badge/terraform_validate-passed-brightgreen)
+![terraform_docs](https://img.shields.io/badge/terraform_docs-passed-brightgreen)
+![terraform_tflint](https://img.shields.io/badge/terraform_tflint-passed-brightgreen)
+![terraform_trivy](https://img.shields.io/badge/terraform_trivy-passed-brightgreen)
+![terraform_checkov](https://img.shields.io/badge/terraform_checkov-passed-brightgreen)
+![black](https://img.shields.io/badge/black-passed-brightgreen)
+![pytest](https://img.shields.io/badge/pytest-passed-brightgreen)
 
 # AWS Observability Solutions
 
