@@ -68,15 +68,6 @@ jobs:
             fi
           }
           
-          echo "Debug: Available step outputs:"
-          echo "terraform_fmt: ${{ steps.pre-commit.outputs.terraform_fmt }}"
-          echo "terraform_validate: ${{ steps.pre-commit.outputs.terraform_validate }}"
-          echo "terraform_docs: ${{ steps.pre-commit.outputs.terraform_docs }}"
-          echo "terraform_tflint: ${{ steps.pre-commit.outputs.terraform_tflint }}"
-          echo "terraform_trivy: ${{ steps.pre-commit.outputs.terraform_trivy }}"
-          echo "terraform_checkov: ${{ steps.pre-commit.outputs.terraform_checkov }}"
-          echo "black: ${{ steps.pre-commit.outputs.black }}"
-          
           # Update each hook status
           for hook in terraform_fmt terraform_validate terraform_docs terraform_tflint terraform_trivy terraform_checkov black; do
             case $hook in
@@ -167,8 +158,7 @@ jobs:
                       sed -i "1s/^/![Test Coverage](https:\/\/img.shields.io\/badge\/coverage-${coverage}%25-${color}?style=for-the-badge\&logoColor=white)\n\n/" "$project_readme"
                     else
                       # Update existing badge
-                      sed -i "s/coverage-[0-9.]*%25/coverage-${coverage}%25/" "$project_readme"
-                      sed -i "s/brightgreen\|green\|yellow\|red/${color}/" "$project_readme"
+                      sed -i "s/!\[Test Coverage\].*)/![Test Coverage](https:\/\/img.shields.io\/badge\/coverage-${coverage}%25-${color}?style=for-the-badge\&logoColor=white)/" "$project_readme"
                     fi
                   fi
                 fi
@@ -179,8 +169,7 @@ jobs:
             total_color=$(get_color $total_coverage)
             echo "Total coverage: $total_coverage%"
             # Update total coverage badge in root README
-            sed -i "s/coverage-[0-9.]*%25/coverage-${total_coverage}%25/" README.md
-            sed -i "s/brightgreen\|green\|yellow\|red/${total_color}/" README.md
+            sed -i "s/!\[Test Coverage\].*)/![Test Coverage](https:\/\/img.shields.io\/badge\/coverage-${total_coverage}%25-${total_color}?style=for-the-badge\&logoColor=white)/" README.md
           fi
         done < coverage.xml
     - name: Commit changes
