@@ -5,6 +5,18 @@
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Test Coverage](https://img.shields.io/badge/coverage-88%25-green?style=for-the-badge&logoColor=white)
 
+| Hook | Status |
+|------|--------|
+| terraform_fmt | ![terraform_fmt](https://img.shields.io/badge/terraform_fmt-pending-lightgrey) |
+| terraform_validate | ![terraform_validate](https://img.shields.io/badge/terraform_validate-pending-lightgrey) |
+| terraform_docs | ![terraform_docs](https://img.shields.io/badge/terraform_docs-pending-lightgrey) |
+| terraform_tflint | ![terraform_tflint](https://img.shields.io/badge/terraform_tflint-pending-lightgrey) |
+| terraform_trivy | ![terraform_trivy](https://img.shields.io/badge/terraform_trivy-pending-lightgrey) |
+| terraform_checkov | ![terraform_checkov](https://img.shields.io/badge/terraform_checkov-pending-lightgrey) |
+| black | ![black](https://img.shields.io/badge/black-pending-lightgrey) |
+| pytest | ![pytest](https://img.shields.io/badge/pytest-pending-lightgrey) |
+
+
 # AWS Observability Solutions
 
 This repository contains a collection of AWS observability solutions that help monitor, analyze, and maintain your AWS infrastructure. Each solution is designed to work independently or together to provide comprehensive observability across your AWS environment.
