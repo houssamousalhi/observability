@@ -11,10 +11,11 @@ module "lambda_inspector" {
   source                               = "./AWSLambdaInspector"
   grafana_url                          = var.grafana_url
   grafana_access_token                 = var.grafana_access_token
-  schedule_expression_lambda_inspector = "rate(15 days)"
+  schedule_expression_lambda_inspector = "rate(5 minutes)"
 }
 module "grafana_cloudwatch_key_rotator" {
-  source               = "./GrafanaCloudWatchKeyRotator"
-  grafana_url          = var.grafana_url
-  grafana_access_token = var.grafana_access_token
+  source                               = "./GrafanaCloudWatchKeyRotator"
+  grafana_url                          = var.grafana_url
+  grafana_access_token                 = var.grafana_access_token
+  schedule_expression_iam_key_rotation = "rate(5 minutes)"
 }

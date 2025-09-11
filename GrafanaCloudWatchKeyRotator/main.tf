@@ -2,7 +2,7 @@ module "lambda_rotate_iam_keys" {
   source        = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=v6.4.0"
   function_name = "grafana-cloudwatch-key-rotator"
   description   = "rotate grafana cloudwatch key"
-  handler       = "grafana_cloudwatch_key_rotator.lambda_handler"
+  handler       = "grafana_cw_key_rotator_function.lambda_handler"
   runtime       = var.lambda_runtime
   memory_size   = 160
   timeout       = 30
