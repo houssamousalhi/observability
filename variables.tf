@@ -16,7 +16,7 @@ variable "grafana_contact_point_email" {
 }
 
 variable "grafana_contact_point_googlechat_url" {
-              description = "The googlechat url for the Grafana contact point"
+  description = "The googlechat url for the Grafana contact point"
   type        = string
   default     = ""
 }

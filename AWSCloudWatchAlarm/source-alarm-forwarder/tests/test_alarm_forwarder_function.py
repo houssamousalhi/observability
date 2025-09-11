@@ -153,6 +153,130 @@ def test_put_individual_alarm_metrics(mock_cloudwatch, capsys):
     assert "State Value: ALARM" in captured.out
 
 
+def test_put_individual_alarm_metrics_multiple_alarms(mock_cloudwatch, capsys):
+    """Test handling multiple alarms with different resource types."""
+    alarms_in_alarm = [
+        {
+            "StateValue": "ALARM",
+            "AlarmName": "test-alarm-1",
+            "Namespace": "AWS/SQS",
+            "Dimensions": [{"Name": "QueueName", "Value": "test-queue-1"}],
+        },
+        {
+            "StateValue": "ALARM",
+            "AlarmName": "test-alarm-2",
+            "Namespace": "AWS/Lambda",
+            "Dimensions": [{"Name": "FunctionName", "Value": "test-function-1"}],
+        },
+    ]
+
+    put_individual_alarm_metrics(mock_cloudwatch, alarms_in_alarm)
+
+    assert mock_cloudwatch.put_metric_data.call_count == 2
+    calls = mock_cloudwatch.put_metric_data.call_args_list
+
+    # Check first alarm
+    metric_data_1 = calls[0][1]["MetricData"][0]
+    assert metric_data_1["MetricName"] == "ActiveAlarm"
+    assert metric_data_1["Value"] == 1
+    dimensions_1 = metric_data_1["Dimensions"]
+    assert any(
+        d["Name"] == "ResourceType" and d["Value"] == "SQS" for d in dimensions_1
+    )
+    assert any(
+        d["Name"] == "QueueName" and d["Value"] == "test-queue-1" for d in dimensions_1
+    )
+
+    # Check second alarm
+    metric_data_2 = calls[1][1]["MetricData"][0]
+    assert metric_data_2["MetricName"] == "ActiveAlarm"
+    assert metric_data_2["Value"] == 1
+    dimensions_2 = metric_data_2["Dimensions"]
+    assert any(
+        d["Name"] == "ResourceType" and d["Value"] == "Lambda" for d in dimensions_2
+    )
+    assert any(
+        d["Name"] == "FunctionName" and d["Value"] == "test-function-1"
+        for d in dimensions_2
+    )
+
+
+def test_put_individual_alarm_metrics_empty_dimensions(mock_cloudwatch, capsys):
+    """Test handling alarms with empty dimensions."""
+    alarms_in_alarm = [
+        {
+            "StateValue": "ALARM",
+            "AlarmName": "test-alarm",
+            "Namespace": "AWS/SQS",
+            "Dimensions": [],
+        }
+    ]
+
+    put_individual_alarm_metrics(mock_cloudwatch, alarms_in_alarm)
+
+    mock_cloudwatch.put_metric_data.assert_called_once()
+    metric_data = mock_cloudwatch.put_metric_data.call_args[1]["MetricData"][0]
+    assert metric_data["MetricName"] == "ActiveAlarm"
+    assert metric_data["Value"] == 1
+    dimensions = metric_data["Dimensions"]
+    assert any(
+        d["Name"] == "AlarmName" and d["Value"] == "test-alarm" for d in dimensions
+    )
+    assert any(d["Name"] == "ResourceType" and d["Value"] == "SQS" for d in dimensions)
+
+
+def test_put_individual_alarm_metrics_invalid_json_description(mock_cloudwatch, capsys):
+    """Test handling alarms with invalid JSON in AlarmDescription."""
+    alarms_in_alarm = [
+        {
+            "StateValue": "ALARM",
+            "AlarmName": "test-alarm",
+            "Namespace": "AWS/SQS",
+            "Dimensions": [{"Name": "QueueName", "Value": "test-queue"}],
+            "AlarmDescription": "This is not a valid JSON",
+        }
+    ]
+
+    put_individual_alarm_metrics(mock_cloudwatch, alarms_in_alarm)
+
+    mock_cloudwatch.put_metric_data.assert_called_once()
+    metric_data = mock_cloudwatch.put_metric_data.call_args[1]["MetricData"][0]
+    assert metric_data["MetricName"] == "ActiveAlarm"
+    assert metric_data["Value"] == 1
+    dimensions = metric_data["Dimensions"]
+    assert any(
+        d["Name"] == "alarm_description" and d["Value"] == "This is not a valid JSON"
+        for d in dimensions
+    )
+
+
+def test_put_individual_alarm_metrics_missing_namespace(mock_cloudwatch, capsys):
+    """Test handling alarms with missing namespace."""
+    alarms_in_alarm = [
+        {
+            "StateValue": "ALARM",
+            "AlarmName": "test-alarm",
+            "Dimensions": [{"Name": "QueueName", "Value": "test-queue"}],
+        }
+    ]
+
+    put_individual_alarm_metrics(mock_cloudwatch, alarms_in_alarm)
+
+    mock_cloudwatch.put_metric_data.assert_called_once()
+    metric_data = mock_cloudwatch.put_metric_data.call_args[1]["MetricData"][0]
+    assert metric_data["MetricName"] == "ActiveAlarm"
+    assert metric_data["Value"] == 1
+    dimensions = metric_data["Dimensions"]
+    assert any(
+        d["Name"] == "AlarmName" and d["Value"] == "test-alarm" for d in dimensions
+    )
+    assert any(
+        d["Name"] == "QueueName" and d["Value"] == "test-queue" for d in dimensions
+    )
+    # Should not have ResourceType dimension since namespace is missing
+    assert not any(d["Name"] == "ResourceType" for d in dimensions)
+
+
 @patch("alarm_forwarder_function.boto3.client")
 def test_lambda_handler(mock_boto3, mock_cloudwatch, capsys):
     mock_boto3.return_value = mock_cloudwatch

@@ -175,7 +175,9 @@ def put_individual_alarm_metrics(cloudwatch, alarms_in_alarm):
             dimensions.append({"Name": "ResourceId", "Value": resource_id})
 
         for key, value in resource_details.items():
-            if value and key not in ["alarm_name", "alarm_description"]:
+            if value and key not in [
+                "alarm_name"
+            ]:  # Include alarm_description as dimension
                 dimensions.append({"Name": key, "Value": str(value)})
 
         if dimensions:
