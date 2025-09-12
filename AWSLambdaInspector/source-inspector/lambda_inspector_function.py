@@ -36,13 +36,16 @@ class LambdaInspector:
                     tags = self.lambda_client.list_tags(
                         Resource=function["FunctionArn"]
                     ).get("Tags", {})
-                    functions.append(
-                        LambdaFunction(
-                            name=function["FunctionName"],
-                            arn=function["FunctionArn"],
-                            tags=tags,
+
+                    # Only include functions that have the AppVersion tag
+                    if "AppVersion" in tags:
+                        functions.append(
+                            LambdaFunction(
+                                name=function["FunctionName"],
+                                arn=function["FunctionArn"],
+                                tags=tags,
+                            )
                         )
-                    )
                 except Exception as e:
                     print(
                         f"Error getting tags for function {function['FunctionName']}: {e}"
@@ -50,10 +53,9 @@ class LambdaInspector:
 
         return functions
 
-    def extract_service_info(self, function: LambdaFunction) -> Optional[ServiceInfo]:
+    def extract_service_info(self, function: LambdaFunction) -> ServiceInfo:
         tags = function.tags
-        if "AppVersion" not in tags:
-            return None
+        # AppVersion is guaranteed to exist since we filter for it in get_all_functions
 
         stack = tags.get("Stack", "Unknown")
         service = f"{stack}-{tags.get('Service', 'Unknown')}"
@@ -115,15 +117,14 @@ def lambda_handler(event, context):
 
     for function in functions:
         service_info = inspector.extract_service_info(function)
-        if service_info:
-            services.add(service_info)
-            try:
-                inspector.publish_lambda_metrics(function, service_info)
-                print(
-                    f"Published metric for {function.name} AppVersion {function.tags['AppVersion']}, Stack {service_info.stack}"
-                )
-            except Exception as e:
-                print(f"Error processing function {function.name}: {e}")
+        services.add(service_info)
+        try:
+            inspector.publish_lambda_metrics(function, service_info)
+            print(
+                f"Published metric for {function.name} AppVersion {function.tags['AppVersion']}, Stack {service_info.stack}"
+            )
+        except Exception as e:
+            print(f"Error processing function {function.name}: {e}")
 
     for service_info in services:
         try:
