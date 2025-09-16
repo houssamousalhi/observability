@@ -10,17 +10,20 @@
 
 A sophisticated monitoring solution that provides complete visibility into your AWS Lambda functions lifecycle. Key features include:
 - Automated tracking of both Infrastructure as Code (IAC) and Application versions
-- Comprehensive deployment history and change tracking
+- Comprehensive deployment history and change tracking via AWS Config integration
+- Historical version analysis to track version changes over time
 
 ### Key Features
 
 - **Automated Version Tracking**: Monitors Lambda function versions across different environments (dev, prod)
+- **Historical Analysis**: Tracks version changes over time using AWS Config history
 - **Environment Comparison**: Easily compare versions between development and production environments
 - **Service-Level Monitoring**: Track versions at the service and stack level
 - **CloudWatch Integration**: Publishes custom metrics for better observability
 - **Terraform Integration**: Seamlessly works with your existing Terraform infrastructure
 - **Grafana Dashboard**: Visual monitoring and alerting capabilities
 - **Scheduled Monitoring**: Configurable monitoring intervals (default: 5 minutes)
+- **Flexible History Lookback**: Configurable time ranges for historical data analysis
 
 ### Visual Overview
 
@@ -32,25 +35,33 @@ The AWS Lambda Inspector consists of the following components:
 
 1. **Inspector Lambda Function**: A Python-based Lambda function that:
    - Lists all Lambda functions in your AWS account
-   - Retrieves tags and version information
+   - Retrieves current tags and version information
+   - Queries AWS Config for historical version data
    - Publishes metrics to CloudWatch
    - Runs on a scheduled basis (configurable via `schedule_expression`)
 
-2. **CloudWatch Event Rule**: Triggers the Inspector Lambda function at regular intervals
+2. **AWS Config Integration**: 
+   - Tracks configuration changes over time
+   - Provides historical version data for comprehensive analysis
+   - Enables tracking of version transitions and rollbacks
 
-3. **CloudWatch Metrics**: Custom metrics published for monitoring:
+3. **CloudWatch Event Rule**: Triggers the Inspector Lambda function at regular intervals
+
+4. **CloudWatch Metrics**: Custom metrics published for monitoring:
    - `lambdaTag`: Function-level metrics with dimensions for environment, service, stack, and version
    - `terraformTag`: Stack-level metrics for Terraform version tracking
+   - Historical metrics show version changes over time
 
-4. **Grafana Dashboard**: Provides visual monitoring with:
+5. **Grafana Dashboard**: Provides visual monitoring with:
    - Version comparison across environments
    - Service-level overview
    - Stack-level monitoring
+   - Historical version trends
 
 ## Deployment
 ### Installation Steps
 
-1. Ensure you have AWS cgreenentials configured:
+1. Ensure you have AWS credentials configured:
    ```bash
    aws configure
    ```
@@ -63,12 +74,47 @@ The AWS Lambda Inspector consists of the following components:
    rotation_period_days = 30
    ```
 
-3. Deploy the infrastructure:
+3. Ensure AWS Config is enabled and recording Lambda functions:
+   - Enable AWS Config in your AWS account
+   - Configure it to record AWS::Lambda::Function resource types
+   - Verify the Lambda Inspector IAM role has Config permissions
+
+4. Deploy the infrastructure:
    ```bash
    terraform init
    terraform plan
    terraform apply
    ```
+
+## Usage
+
+### Command Line Interface
+
+The Lambda Inspector can be run locally for testing and debugging:
+
+```bash
+# Run without history (uses current tags only)
+python lambda_inspector_function.py False
+
+# Run with history (queries AWS Config for historical data)
+python lambda_inspector_function.py True 7 0
+
+# Run with custom time range (7 days lookback, 0 days recent)
+python lambda_inspector_function.py True 7 0
+```
+
+### Parameters
+
+- `include_history`: Boolean flag to enable/disable AWS Config history queries
+- `earlier_days`: Number of days to look back for historical data (default: 365)
+- `later_days`: Number of recent days to exclude from history (default: 0)
+
+### AWS Config Requirements
+
+For historical analysis to work properly, ensure:
+- AWS Config is enabled in your account
+- Lambda functions are being recorded by AWS Config
+- The Lambda Inspector has appropriate IAM permissions to query AWS Config
 
 ## Monitoring
 
@@ -77,15 +123,18 @@ After deployment, you can monitor your Lambda functions through:
 1. **CloudWatch Metrics**:
    - Navigate to CloudWatch > Metrics
    - Look for custom namespace containing `lambdaTag` and `terraformTag` metrics
+   - Historical metrics show version changes over time
 
 2. **CloudWatch Logs**:
    - Check the logs of the Inspector Lambda function
    - Monitor for any errors or version mismatches
+   - Reduced verbosity for cleaner log output
 
 3. **Grafana Dashboard**:
-   - Access the pre-configugreen dashboard
+   - Access the pre-configured dashboard
    - Monitor version differences across environments
    - Set up alerts for version mismatches
+   - View historical version trends
 
 ## Additional Resources
 
