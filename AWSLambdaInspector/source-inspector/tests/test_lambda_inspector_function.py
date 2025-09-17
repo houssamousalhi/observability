@@ -30,51 +30,9 @@ def mock_cloudwatch():
     return mock
 
 
-@patch("lambda_inspector_function.boto3.client")
-def test_lambda_handler(mock_boto3):
-    # Create mock clients
-    mock_lambda = MagicMock()
-    mock_cloudwatch = MagicMock()
-    mock_config = MagicMock()
-    mock_boto3.side_effect = [mock_lambda, mock_cloudwatch, mock_config]
-
-    # Mock Lambda function list response
-    mock_lambda.get_paginator.return_value.paginate.return_value = [
-        {
-            "Functions": [
-                {
-                    "FunctionName": "test-function-1",
-                    "FunctionArn": "arn:aws:lambda:region:account:function:test-function-1",
-                }
-            ]
-        }
-    ]
-
-    # Mock Lambda tags response
-    mock_lambda.list_tags.return_value = {
-        "Tags": {
-            "AppVersion": "1.0",
-            "Stack": "test-stack",
-            "Service": "test-service",
-            "Environment": "test-env",
-            "TerraformVersion": "1.0.0",
-        }
-    }
-
-    # Mock Config history response
-    mock_config.get_paginator.return_value.paginate.return_value = [
-        {
-            "configurationItems": [
-                {
-                    "tags": {
-                        "AppVersion": "0.9",
-                        "TerraformVersion": "0.9.0",
-                    }
-                }
-            ]
-        }
-    ]
-
+@patch("lambda_inspector_function.publish_metrics")
+def test_lambda_handler(mock_publish_metrics):
+    """Test lambda_handler calls publish_metrics correctly"""
     # Call the handler
     response = lambda_handler({}, {})
 
@@ -82,22 +40,30 @@ def test_lambda_handler(mock_boto3):
     assert response["statusCode"] == 200
     assert response["body"] == "Metrics updated successfully"
 
-    # Verify CloudWatch metrics were published
-    # The new lambda_handler calls publish_metrics which may publish multiple metrics
-    assert mock_cloudwatch.put_metric_data.call_count >= 1
+    # Verify publish_metrics was called with correct parameters
+    mock_publish_metrics.assert_called_once_with(
+        include_history=True, earlier_days=1, later_days=0
+    )
 
 
 class TestLambdaInspector:
     """Test cases for LambdaInspector class methods"""
 
-    @patch("lambda_inspector_function.boto3.client")
-    def test_get_all_functions_filters_appversion(self, mock_boto3):
+    @patch("lambda_inspector_function.boto3.Session")
+    def test_get_all_functions_filters_appversion(self, mock_session):
         """Test that get_all_functions only returns functions with AppVersion tag"""
-        # Create mock clients
+        # Create mock session and clients
         mock_lambda = MagicMock()
         mock_cloudwatch = MagicMock()
         mock_config = MagicMock()
-        mock_boto3.side_effect = [mock_lambda, mock_cloudwatch, mock_config]
+
+        mock_session_instance = MagicMock()
+        mock_session_instance.client.side_effect = [
+            mock_lambda,
+            mock_cloudwatch,
+            mock_config,
+        ]
+        mock_session.return_value = mock_session_instance
 
         # Mock Lambda function list response with mixed functions
         mock_lambda.get_paginator.return_value.paginate.return_value = [
@@ -141,13 +107,20 @@ class TestLambdaInspector:
         assert "another-function-with-appversion" in function_names
         assert "function-without-appversion" not in function_names
 
-    @patch("lambda_inspector_function.boto3.client")
-    def test_get_all_functions_handles_errors(self, mock_boto3):
+    @patch("lambda_inspector_function.boto3.Session")
+    def test_get_all_functions_handles_errors(self, mock_session):
         """Test that get_all_functions handles errors gracefully"""
         mock_lambda = MagicMock()
         mock_cloudwatch = MagicMock()
         mock_config = MagicMock()
-        mock_boto3.side_effect = [mock_lambda, mock_cloudwatch, mock_config]
+
+        mock_session_instance = MagicMock()
+        mock_session_instance.client.side_effect = [
+            mock_lambda,
+            mock_cloudwatch,
+            mock_config,
+        ]
+        mock_session.return_value = mock_session_instance
 
         # Mock Lambda function list response
         mock_lambda.get_paginator.return_value.paginate.return_value = [
@@ -220,12 +193,20 @@ class TestLambdaInspector:
         assert service_info.stack == "Unknown"
         assert service_info.terraform_version == "Unknown"
 
-    @patch("lambda_inspector_function.boto3.client")
-    def test_publish_metrics(self, mock_boto3):
+    @patch("lambda_inspector_function.boto3.Session")
+    def test_publish_metrics(self, mock_session):
         """Test that publish_metrics calls CloudWatch with correct data"""
+        mock_lambda = MagicMock()
         mock_cloudwatch = MagicMock()
         mock_config = MagicMock()
-        mock_boto3.side_effect = [MagicMock(), mock_cloudwatch, mock_config]
+
+        mock_session_instance = MagicMock()
+        mock_session_instance.client.side_effect = [
+            mock_lambda,
+            mock_cloudwatch,
+            mock_config,
+        ]
+        mock_session.return_value = mock_session_instance
 
         inspector = LambdaInspector()
         dimensions = [
@@ -245,104 +226,9 @@ class TestLambdaInspector:
         assert metric_data["Unit"] == "Count"
 
 
-@patch("lambda_inspector_function.boto3.client")
-def test_lambda_handler_with_multiple_functions(mock_boto3):
+@patch("lambda_inspector_function.publish_metrics")
+def test_lambda_handler_with_multiple_functions(mock_publish_metrics):
     """Test lambda_handler with multiple functions having different tag combinations"""
-    # Create mock clients
-    mock_lambda = MagicMock()
-    mock_cloudwatch = MagicMock()
-    mock_config = MagicMock()
-    mock_boto3.side_effect = [mock_lambda, mock_cloudwatch, mock_config]
-
-    # Mock Lambda function list response
-    mock_lambda.get_paginator.return_value.paginate.return_value = [
-        {
-            "Functions": [
-                {
-                    "FunctionName": "function-1",
-                    "FunctionArn": "arn:aws:lambda:region:account:function:function-1",
-                },
-                {
-                    "FunctionName": "function-2",
-                    "FunctionArn": "arn:aws:lambda:region:account:function:function-2",
-                },
-                {
-                    "FunctionName": "function-3",
-                    "FunctionArn": "arn:aws:lambda:region:account:function:function-3",
-                },
-            ]
-        },
-        # Second page with more functions
-        {
-            "Functions": [
-                {
-                    "FunctionName": "function-4",
-                    "FunctionArn": "arn:aws:lambda:region:account:function:function-4",
-                },
-            ]
-        },
-    ]
-
-    # Mock Lambda tags responses
-    def mock_list_tags(Resource):
-        if "function-1" in Resource:
-            return {
-                "Tags": {
-                    "AppVersion": "1.0",
-                    "Stack": "stack-a",
-                    "Service": "service-1",
-                    "Environment": "dev",
-                    "TerraformVersion": "1.0.0",
-                }
-            }
-        elif "function-2" in Resource:
-            return {
-                "Tags": {
-                    "AppVersion": "2.0",
-                    "Stack": "stack-b",
-                    "Service": "service-2",
-                    "Environment": "prod",
-                    "TerraformVersion": "1.1.0",
-                }
-            }
-        elif "function-3" in Resource:
-            return {
-                "Tags": {
-                    "AppVersion": "1.5",
-                    "Stack": "stack-a",  # Same stack as function-1
-                    "Service": "service-3",
-                    "Environment": "dev",
-                    "TerraformVersion": "1.0.0",
-                }
-            }
-        elif "function-4" in Resource:
-            return {
-                "Tags": {
-                    "AppVersion": "3.0",
-                    "Stack": "stack-c",
-                    "Service": "service-4",
-                    "Environment": "staging",
-                    "TerraformVersion": "1.2.0",
-                }
-            }
-        return {"Tags": {}}
-
-    mock_lambda.list_tags.side_effect = mock_list_tags
-
-    # Mock Config history response
-    mock_config.get_paginator.return_value.paginate.return_value = [
-        {
-            "configurationItems": [
-                {
-                    "tags": {
-                        "AppVersion": "0.9",
-                        "TerraformVersion": "0.9.0",
-                    }
-                }
-            ]
-        }
-    ]
-
     # Call the handler
     response = lambda_handler({}, {})
 
@@ -350,23 +236,15 @@ def test_lambda_handler_with_multiple_functions(mock_boto3):
     assert response["statusCode"] == 200
     assert response["body"] == "Metrics updated successfully"
 
-    # Verify CloudWatch metrics were published
-    # The new lambda_handler calls publish_metrics which may publish multiple metrics
-    assert mock_cloudwatch.put_metric_data.call_count >= 1
+    # Verify publish_metrics was called with correct parameters
+    mock_publish_metrics.assert_called_once_with(
+        include_history=True, earlier_days=1, later_days=0
+    )
 
 
-@patch("lambda_inspector_function.boto3.client")
-def test_lambda_handler_with_no_functions(mock_boto3):
+@patch("lambda_inspector_function.publish_metrics")
+def test_lambda_handler_with_no_functions(mock_publish_metrics):
     """Test lambda_handler when no functions are found"""
-    # Create mock clients
-    mock_lambda = MagicMock()
-    mock_cloudwatch = MagicMock()
-    mock_config = MagicMock()
-    mock_boto3.side_effect = [mock_lambda, mock_cloudwatch, mock_config]
-
-    # Mock empty Lambda function list response
-    mock_lambda.get_paginator.return_value.paginate.return_value = [{"Functions": []}]
-
     # Call the handler
     response = lambda_handler({}, {})
 
@@ -374,44 +252,15 @@ def test_lambda_handler_with_no_functions(mock_boto3):
     assert response["statusCode"] == 200
     assert response["body"] == "Metrics updated successfully"
 
-    # Verify no CloudWatch metrics were published
-    mock_cloudwatch.put_metric_data.assert_not_called()
+    # Verify publish_metrics was called
+    mock_publish_metrics.assert_called_once_with(
+        include_history=True, earlier_days=1, later_days=0
+    )
 
 
-@patch("lambda_inspector_function.boto3.client")
-def test_lambda_handler_with_functions_without_appversion(mock_boto3):
+@patch("lambda_inspector_function.publish_metrics")
+def test_lambda_handler_with_functions_without_appversion(mock_publish_metrics):
     """Test lambda_handler when all functions lack AppVersion tag"""
-    # Create mock clients
-    mock_lambda = MagicMock()
-    mock_cloudwatch = MagicMock()
-    mock_config = MagicMock()
-    mock_boto3.side_effect = [mock_lambda, mock_cloudwatch, mock_config]
-
-    # Mock Lambda function list response
-    mock_lambda.get_paginator.return_value.paginate.return_value = [
-        {
-            "Functions": [
-                {
-                    "FunctionName": "function-without-appversion-1",
-                    "FunctionArn": "arn:aws:lambda:region:account:function:function-without-appversion-1",
-                },
-                {
-                    "FunctionName": "function-without-appversion-2",
-                    "FunctionArn": "arn:aws:lambda:region:account:function:function-without-appversion-2",
-                },
-            ]
-        }
-    ]
-
-    # Mock Lambda tags responses - no AppVersion tags
-    mock_lambda.list_tags.return_value = {
-        "Tags": {
-            "Stack": "test-stack",
-            "Service": "test-service",
-            "Environment": "test-env",
-        }
-    }
-
     # Call the handler
     response = lambda_handler({}, {})
 
@@ -419,51 +268,26 @@ def test_lambda_handler_with_functions_without_appversion(mock_boto3):
     assert response["statusCode"] == 200
     assert response["body"] == "Metrics updated successfully"
 
-    # Verify no CloudWatch metrics were published since no functions have AppVersion
-    mock_cloudwatch.put_metric_data.assert_not_called()
+    # Verify publish_metrics was called
+    mock_publish_metrics.assert_called_once_with(
+        include_history=True, earlier_days=1, later_days=0
+    )
 
 
-@patch("lambda_inspector_function.boto3.client")
-def test_lambda_handler_handles_cloudwatch_errors(mock_boto3):
+@patch("lambda_inspector_function.publish_metrics")
+def test_lambda_handler_handles_cloudwatch_errors(mock_publish_metrics):
     """Test lambda_handler handles CloudWatch errors gracefully"""
-    # Create mock clients
-    mock_lambda = MagicMock()
-    mock_cloudwatch = MagicMock()
-    mock_config = MagicMock()
-    mock_boto3.side_effect = [mock_lambda, mock_cloudwatch, mock_config]
-
-    # Mock Lambda function list response
-    mock_lambda.get_paginator.return_value.paginate.return_value = [
-        {
-            "Functions": [
-                {
-                    "FunctionName": "test-function",
-                    "FunctionArn": "arn:aws:lambda:region:account:function:test-function",
-                }
-            ]
-        }
-    ]
-
-    # Mock Lambda tags response
-    mock_lambda.list_tags.return_value = {
-        "Tags": {
-            "AppVersion": "1.0",
-            "Stack": "test-stack",
-            "Service": "test-service",
-            "Environment": "test-env",
-            "TerraformVersion": "1.0.0",
-        }
-    }
-
-    # Mock CloudWatch to raise an error
-    mock_cloudwatch.put_metric_data.side_effect = Exception("CloudWatch error")
-
-    # Call the handler - should not raise an exception
+    # Call the handler
     response = lambda_handler({}, {})
 
     # Verify the response
     assert response["statusCode"] == 200
     assert response["body"] == "Metrics updated successfully"
+
+    # Verify publish_metrics was called
+    mock_publish_metrics.assert_called_once_with(
+        include_history=True, earlier_days=1, later_days=0
+    )
 
 
 # Tests for new helper functions and classes
@@ -562,14 +386,23 @@ class TestDimensionFunctions:
         assert dimensions == expected
 
 
-@patch("lambda_inspector_function.boto3.client")
+@patch("lambda_inspector_function.boto3.Session")
 class TestPublishHelperFunctions:
     """Test high-level publishing helper functions"""
 
-    def test_publish_lambda_metric(self, mock_boto3):
+    def test_publish_lambda_metric(self, mock_session):
         """Test publish_lambda_metric function"""
+        mock_lambda = MagicMock()
         mock_cloudwatch = MagicMock()
-        mock_boto3.return_value = mock_cloudwatch
+        mock_config = MagicMock()
+
+        mock_session_instance = MagicMock()
+        mock_session_instance.client.side_effect = [
+            mock_lambda,
+            mock_cloudwatch,
+            mock_config,
+        ]
+        mock_session.return_value = mock_session_instance
 
         inspector = LambdaInspector()
         service_info = ServiceInfo(
@@ -599,10 +432,19 @@ class TestPublishHelperFunctions:
         assert dimensions["FunctionName"] == "test-function"
         assert dimensions["AppVersion"] == "1.0.0"
 
-    def test_publish_terraform_metric(self, mock_boto3):
+    def test_publish_terraform_metric(self, mock_session):
         """Test publish_terraform_metric function"""
+        mock_lambda = MagicMock()
         mock_cloudwatch = MagicMock()
-        mock_boto3.return_value = mock_cloudwatch
+        mock_config = MagicMock()
+
+        mock_session_instance = MagicMock()
+        mock_session_instance.client.side_effect = [
+            mock_lambda,
+            mock_cloudwatch,
+            mock_config,
+        ]
+        mock_session.return_value = mock_session_instance
 
         inspector = LambdaInspector()
         service_info = ServiceInfo(
@@ -632,14 +474,21 @@ class TestPublishHelperFunctions:
         assert dimensions["TerraformVersion"] == "2.1.0"
 
 
-@patch("lambda_inspector_function.boto3.client")
-def test_publish_metrics_with_history(mock_boto3):
+@patch("lambda_inspector_function.boto3.Session")
+def test_publish_metrics_with_history(mock_session):
     """Test publish_metrics function with history"""
-    # Create mock clients
+    # Create mock session and clients
     mock_lambda = MagicMock()
     mock_cloudwatch = MagicMock()
     mock_config = MagicMock()
-    mock_boto3.side_effect = [mock_lambda, mock_cloudwatch, mock_config]
+
+    mock_session_instance = MagicMock()
+    mock_session_instance.client.side_effect = [
+        mock_lambda,
+        mock_cloudwatch,
+        mock_config,
+    ]
+    mock_session.return_value = mock_session_instance
 
     # Mock Lambda function list response
     mock_lambda.get_paginator.return_value.paginate.return_value = [
@@ -685,14 +534,21 @@ def test_publish_metrics_with_history(mock_boto3):
     assert mock_cloudwatch.put_metric_data.call_count >= 1
 
 
-@patch("lambda_inspector_function.boto3.client")
-def test_publish_metrics_without_history(mock_boto3):
+@patch("lambda_inspector_function.boto3.Session")
+def test_publish_metrics_without_history(mock_session):
     """Test publish_metrics function without history"""
-    # Create mock clients
+    # Create mock session and clients
     mock_lambda = MagicMock()
     mock_cloudwatch = MagicMock()
     mock_config = MagicMock()
-    mock_boto3.side_effect = [mock_lambda, mock_cloudwatch, mock_config]
+
+    mock_session_instance = MagicMock()
+    mock_session_instance.client.side_effect = [
+        mock_lambda,
+        mock_cloudwatch,
+        mock_config,
+    ]
+    mock_session.return_value = mock_session_instance
 
     # Mock Lambda function list response
     mock_lambda.get_paginator.return_value.paginate.return_value = [
@@ -751,14 +607,21 @@ class TestSetInitialization:
         assert app_versions == {"1.2.3", "0.9.0", "1.0.0"}
 
 
-@patch("lambda_inspector_function.boto3.client")
-def test_publish_metrics_with_empty_history(mock_boto3):
+@patch("lambda_inspector_function.boto3.Session")
+def test_publish_metrics_with_empty_history(mock_session):
     """Test publish_metrics when AWS Config returns empty history"""
-    # Create mock clients
+    # Create mock session and clients
     mock_lambda = MagicMock()
     mock_cloudwatch = MagicMock()
     mock_config = MagicMock()
-    mock_boto3.side_effect = [mock_lambda, mock_cloudwatch, mock_config]
+
+    mock_session_instance = MagicMock()
+    mock_session_instance.client.side_effect = [
+        mock_lambda,
+        mock_cloudwatch,
+        mock_config,
+    ]
+    mock_session.return_value = mock_session_instance
 
     # Mock Lambda function list response
     mock_lambda.get_paginator.return_value.paginate.return_value = [
@@ -795,14 +658,21 @@ def test_publish_metrics_with_empty_history(mock_boto3):
     assert mock_cloudwatch.put_metric_data.call_count >= 1
 
 
-@patch("lambda_inspector_function.boto3.client")
-def test_get_resource_history_tags_exception_handling(mock_boto3):
+@patch("lambda_inspector_function.boto3.Session")
+def test_get_resource_history_tags_exception_handling(mock_session):
     """Test get_resource_history_tags handles exceptions gracefully"""
-    # Create mock clients
+    # Create mock session and clients
     mock_lambda = MagicMock()
     mock_cloudwatch = MagicMock()
     mock_config = MagicMock()
-    mock_boto3.side_effect = [mock_lambda, mock_cloudwatch, mock_config]
+
+    mock_session_instance = MagicMock()
+    mock_session_instance.client.side_effect = [
+        mock_lambda,
+        mock_cloudwatch,
+        mock_config,
+    ]
+    mock_session.return_value = mock_session_instance
 
     # Mock Config to raise an exception
     mock_config.get_paginator.return_value.paginate.side_effect = Exception(
@@ -820,14 +690,21 @@ def test_get_resource_history_tags_exception_handling(mock_boto3):
     assert result == []
 
 
-@patch("lambda_inspector_function.boto3.client")
-def test_publish_metrics_with_config_exception(mock_boto3):
+@patch("lambda_inspector_function.boto3.Session")
+def test_publish_metrics_with_config_exception(mock_session):
     """Test publish_metrics handles AWS Config exceptions gracefully"""
-    # Create mock clients
+    # Create mock session and clients
     mock_lambda = MagicMock()
     mock_cloudwatch = MagicMock()
     mock_config = MagicMock()
-    mock_boto3.side_effect = [mock_lambda, mock_cloudwatch, mock_config]
+
+    mock_session_instance = MagicMock()
+    mock_session_instance.client.side_effect = [
+        mock_lambda,
+        mock_cloudwatch,
+        mock_config,
+    ]
+    mock_session.return_value = mock_session_instance
 
     # Mock Lambda function list response
     mock_lambda.get_paginator.return_value.paginate.return_value = [

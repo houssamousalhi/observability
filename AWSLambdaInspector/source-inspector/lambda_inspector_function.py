@@ -3,6 +3,7 @@ import time
 from dataclasses import dataclass
 from typing import Dict, List, Set, Tuple
 from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 
@@ -47,6 +48,9 @@ class Config:
     RECENT_DAYS_CUTOFF = 0
     CONFIG_HISTORY_LIMIT = 100
     AWS_LAMBDA_FUNCTION_RESOURCE_TYPE = "AWS::Lambda::Function"
+    MAX_WORKERS = 10  # Maximum number of parallel workers
+    MAX_WORKERS_AWS_CONFIG = 3  # Maximum number of parallel workers for AWS Config
+    CW_BATCH_SIZE = 20  # Batch size for CloudWatch metric publishing
 
 
 @dataclass
@@ -83,40 +87,64 @@ class MetricsData:
 
 class LambdaInspector:
     def __init__(self):
-        self.lambda_client = boto3.client("lambda")
-        self.cloudwatch_client = boto3.client("cloudwatch")
-        self.config_client = boto3.client("config")
+        # Use session for connection pooling and reuse
+        self.session = boto3.Session()
+        self.lambda_client = self.session.client("lambda")
+        self.cloudwatch_client = self.session.client("cloudwatch")
+        self.config_client = self.session.client("config")
+
+    def _fetch_function_tags(self, function_info: Dict) -> Tuple[LambdaFunction, bool]:
+        """Fetch tags for a single function. Returns (function, has_app_version)."""
+        try:
+            tags = self.lambda_client.list_tags(
+                Resource=function_info["FunctionArn"]
+            ).get("Tags", {})
+
+            if TagNames.APP_VERSION in tags:
+                return (
+                    LambdaFunction(
+                        name=function_info["FunctionName"],
+                        arn=function_info["FunctionArn"],
+                        tags=tags,
+                    ),
+                    True,
+                )
+            return None, False
+        except Exception as e:
+            print(
+                f"Error getting tags for function {function_info['FunctionName']}: {e}"
+            )
+            return None, False
 
     def get_all_functions(self) -> List[LambdaFunction]:
-        functions = []
         all_functions_count = 0
         functions_with_app_version = 0
         paginator = self.lambda_client.get_paginator("list_functions")
 
+        # First, collect all function information
+        all_functions = []
         for page in paginator.paginate():
-            for function in page["Functions"]:
-                all_functions_count += 1
-                try:
-                    tags = self.lambda_client.list_tags(
-                        Resource=function["FunctionArn"]
-                    ).get("Tags", {})
-
-                    # Only include functions that have the AppVersion tag
-                    if TagNames.APP_VERSION in tags:
-                        functions_with_app_version += 1
-                        functions.append(
-                            LambdaFunction(
-                                name=function["FunctionName"],
-                                arn=function["FunctionArn"],
-                                tags=tags,
-                            )
-                        )
-                except Exception as e:
-                    print(
-                        f"Error getting tags for function {function['FunctionName']}: {e}"
-                    )
+            all_functions.extend(page["Functions"])
+            all_functions_count += len(page["Functions"])
 
         print(f"Total functions found: {all_functions_count}")
+
+        # Fetch tags in parallel
+        functions = []
+        with ThreadPoolExecutor(max_workers=Config.MAX_WORKERS) as executor:
+            # Submit all tag fetching tasks
+            future_to_function = {
+                executor.submit(self._fetch_function_tags, func): func
+                for func in all_functions
+            }
+
+            # Process completed tasks
+            for future in as_completed(future_to_function):
+                function, has_app_version = future.result()
+                if has_app_version:
+                    functions_with_app_version += 1
+                    functions.append(function)
+
         print(f"Functions with AppVersion tag: {functions_with_app_version}")
 
         # Sort functions by environment, stack, and service
@@ -173,10 +201,10 @@ class LambdaInspector:
             print(f"Error getting resource history for {resource_id}: {e}")
             return []
 
-    def get_tags_history(
+    def _get_single_function_history(
         self, function: LambdaFunction, earlier_days: float, later_days: float
-    ) -> Tuple[Set[str], Set[str]]:
-        """Extract all AppVersion values from the resource history."""
+    ) -> Tuple[str, Set[str], Set[str]]:
+        """Get history for a single function. Returns (function_name, app_versions, terraform_versions)."""
         app_versions = set()
         terraform_versions = set()
         history_tags = self.get_resource_history_tags(
@@ -193,7 +221,34 @@ class LambdaInspector:
             if TagNames.TERRAFORM_VERSION in tags:
                 terraform_versions.add(tags[TagNames.TERRAFORM_VERSION])
 
-        return app_versions, terraform_versions
+        return function.name, app_versions, terraform_versions
+
+    def get_tags_history_batch(
+        self, functions: List[LambdaFunction], earlier_days: float, later_days: float
+    ) -> Dict[str, Tuple[Set[str], Set[str]]]:
+        """Get history for multiple functions in parallel. Returns dict of function_name -> (app_versions, terraform_versions)."""
+        results = {}
+
+        with ThreadPoolExecutor(max_workers=Config.MAX_WORKERS_AWS_CONFIG) as executor:
+            # Submit all history fetching tasks
+            future_to_function = {
+                executor.submit(
+                    self._get_single_function_history, func, earlier_days, later_days
+                ): func
+                for func in functions
+            }
+
+            # Process completed tasks
+            for future in as_completed(future_to_function):
+                try:
+                    function_name, app_versions, terraform_versions = future.result()
+                    results[function_name] = (app_versions, terraform_versions)
+                except Exception as e:
+                    function = future_to_function[future]
+                    print(f"Error getting history for function {function.name}: {e}")
+                    results[function.name] = (set(), set())
+
+        return results
 
     def publish_metrics(
         self, metric_name: str, dimensions: List[Dict[str, str]], value: float
@@ -215,6 +270,37 @@ class LambdaInspector:
             print(
                 f"Error publishing metric for {metric_name} {dimensions} {value}: {e}"
             )
+
+    def publish_metrics_batch(self, metrics: List[MetricsData]) -> None:
+        """Publish multiple metrics in batches to CloudWatch."""
+        if not metrics:
+            return
+
+        # Split metrics into batches of CW_BATCH_SIZE
+        for i in range(0, len(metrics), Config.CW_BATCH_SIZE):
+            batch = metrics[i : i + Config.CW_BATCH_SIZE]
+            metric_data = [metric.to_cloudwatch_format() for metric in batch]
+
+            try:
+                self.cloudwatch_client.put_metric_data(
+                    Namespace=CLOUDWATCH_NAMESPACE,
+                    MetricData=metric_data,
+                )
+                print(f"Published batch of {len(batch)} metrics")
+            except Exception as e:
+                print(f"Error publishing batch of {len(batch)} metrics: {e}")
+                # Fallback to individual publishing for this batch
+                for metric in batch:
+                    try:
+                        self.cloudwatch_client.put_metric_data(
+                            Namespace=CLOUDWATCH_NAMESPACE,
+                            MetricData=[metric.to_cloudwatch_format()],
+                        )
+                        print(f"Published individual metric for {metric.metric_name}")
+                    except Exception as individual_error:
+                        print(
+                            f"Error publishing individual metric {metric.metric_name}: {individual_error}"
+                        )
 
 
 def create_lambda_dimensions(
@@ -282,16 +368,24 @@ def publish_metrics(
     lambda_metrics_count = 0
     terraform_metrics_count = 0
 
+    all_metrics = []
+    history_results = {}
+    if include_history:
+        print("Fetching history for all functions in parallel...")
+        history_results = inspector.get_tags_history_batch(
+            functions, earlier_days, later_days
+        )
+
     for function in functions:
         service_info = inspector.extract_service_info(function)
 
         app_versions = {function.tags[TagNames.APP_VERSION]}
         terraform_versions = {function.tags[TagNames.TERRAFORM_VERSION]}
 
-        if include_history:
-            app_versions_history, terraform_versions_history = (
-                inspector.get_tags_history(function, earlier_days, later_days)
-            )
+        if include_history and function.name in history_results:
+            app_versions_history, terraform_versions_history = history_results[
+                function.name
+            ]
             app_versions.update(app_versions_history)
             terraform_versions.update(terraform_versions_history)
 
@@ -301,31 +395,62 @@ def publish_metrics(
 
         for version in app_versions:
             if version != function.tags.get(TagNames.APP_VERSION):
-                publish_lambda_metric(
-                    inspector, service_info, function.name, version, 0
+                dimensions = create_lambda_dimensions(
+                    service_info, function.name, version
+                )
+                all_metrics.append(
+                    MetricsData(
+                        metric_name=MetricNames.LAMBDA_TAG,
+                        dimensions=dimensions,
+                        value=0,
+                        unit=Config.METRIC_UNIT,
+                    )
                 )
                 lambda_metrics_count += 1
             else:
-                publish_lambda_metric(
-                    inspector,
-                    service_info,
-                    function.name,
-                    function.tags[TagNames.APP_VERSION],
-                    1,
+                dimensions = create_lambda_dimensions(
+                    service_info, function.name, function.tags[TagNames.APP_VERSION]
+                )
+                all_metrics.append(
+                    MetricsData(
+                        metric_name=MetricNames.LAMBDA_TAG,
+                        dimensions=dimensions,
+                        value=1,
+                        unit=Config.METRIC_UNIT,
+                    )
                 )
                 lambda_metrics_count += 1
 
     for service_info, terraform_versions in service_terraform_versions.items():
         for version in terraform_versions:
             if version != service_info.terraform_version:
-                publish_terraform_metric(inspector, service_info, version, 0)
+                dimensions = create_terraform_dimensions(service_info, version)
+                all_metrics.append(
+                    MetricsData(
+                        metric_name=MetricNames.TERRAFORM_TAG,
+                        dimensions=dimensions,
+                        value=0,
+                        unit=Config.METRIC_UNIT,
+                    )
+                )
                 terraform_metrics_count += 1
             else:
-                publish_terraform_metric(
-                    inspector, service_info, service_info.terraform_version, 1
+                dimensions = create_terraform_dimensions(
+                    service_info, service_info.terraform_version
+                )
+                all_metrics.append(
+                    MetricsData(
+                        metric_name=MetricNames.TERRAFORM_TAG,
+                        dimensions=dimensions,
+                        value=1,
+                        unit=Config.METRIC_UNIT,
+                    )
                 )
                 terraform_metrics_count += 1
 
+    # Publish all metrics in batches
+    print(f"Publishing {len(all_metrics)} metrics in batches...")
+    inspector.publish_metrics_batch(all_metrics)
     print(
         f"Total metrics published: {lambda_metrics_count} lambda metrics, {terraform_metrics_count} terraform metrics"
     )
