@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import Dict, List, Set, Tuple
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
 import boto3
 
 CLOUDWATCH_NAMESPACE = os.environ.get("CLOUDWATCH_NAMESPACE", "StackRef")
@@ -44,12 +43,11 @@ class Config:
 
     METRIC_UNIT = "Count"
     UNKNOWN_VALUE = "Unknown"
-    HISTORY_DAYS_LOOKBACK = 365
-    RECENT_DAYS_CUTOFF = 0
+    FULL_HISTORY_EARLIER_DAYS = 365
+    CLOUDWATCH_RETENTION_OLD_METRICS_DAYS = 14
     CONFIG_HISTORY_LIMIT = 100
     AWS_LAMBDA_FUNCTION_RESOURCE_TYPE = "AWS::Lambda::Function"
-    MAX_WORKERS = 10  # Maximum number of parallel workers
-    MAX_WORKERS_AWS_CONFIG = 3  # Maximum number of parallel workers for AWS Config
+    MAX_WORKERS_AWS = 3  # Maximum number of parallel workers for AWS Config
     CW_BATCH_SIZE = 20  # Batch size for CloudWatch metric publishing
 
 
@@ -131,7 +129,7 @@ class LambdaInspector:
 
         # Fetch tags in parallel
         functions = []
-        with ThreadPoolExecutor(max_workers=Config.MAX_WORKERS) as executor:
+        with ThreadPoolExecutor(max_workers=Config.MAX_WORKERS_AWS) as executor:
             # Submit all tag fetching tasks
             future_to_function = {
                 executor.submit(self._fetch_function_tags, func): func
@@ -229,7 +227,7 @@ class LambdaInspector:
         """Get history for multiple functions in parallel. Returns dict of function_name -> (app_versions, terraform_versions)."""
         results = {}
 
-        with ThreadPoolExecutor(max_workers=Config.MAX_WORKERS_AWS_CONFIG) as executor:
+        with ThreadPoolExecutor(max_workers=Config.MAX_WORKERS_AWS) as executor:
             # Submit all history fetching tasks
             future_to_function = {
                 executor.submit(
@@ -351,15 +349,10 @@ def publish_terraform_metric(
     inspector.publish_metrics(MetricNames.TERRAFORM_TAG, dimensions, value)
 
 
-def lambda_handler(event, context):
-    publish_metrics(include_history=True, earlier_days=1, later_days=0)
-    return {"statusCode": 200, "body": "Metrics updated successfully"}
-
-
 def publish_metrics(
-    include_history: bool = False,
-    earlier_days: float = Config.HISTORY_DAYS_LOOKBACK,
-    later_days: float = Config.RECENT_DAYS_CUTOFF,
+    use_aws_config: bool = False,
+    earlier_days: float = Config.FULL_HISTORY_EARLIER_DAYS,
+    later_days: float = 0,
 ):
     inspector = LambdaInspector()
     functions = inspector.get_all_functions()
@@ -370,7 +363,7 @@ def publish_metrics(
 
     all_metrics = []
     history_results = {}
-    if include_history:
+    if use_aws_config:
         print("Fetching history for all functions in parallel...")
         history_results = inspector.get_tags_history_batch(
             functions, earlier_days, later_days
@@ -382,7 +375,7 @@ def publish_metrics(
         app_versions = {function.tags[TagNames.APP_VERSION]}
         terraform_versions = {function.tags[TagNames.TERRAFORM_VERSION]}
 
-        if include_history and function.name in history_results:
+        if use_aws_config and function.name in history_results:
             app_versions_history, terraform_versions_history = history_results[
                 function.name
             ]
@@ -457,6 +450,69 @@ def publish_metrics(
     print("Published CW Metrics successfully")
 
 
+def handle_current_metrics(event, context):
+    """
+    Lambda handler for current metrics collection.
+
+    This handler does NOT use AWS Config and focuses on pushing the actual
+    AppVersion and TerraformVersion metrics to CloudWatch for currently
+    deployed Lambda functions.
+
+    Purpose:
+    - Collects current tags from Lambda functions directly via Lambda API
+    - Publishes metrics with value=1 for current AppVersion and TerraformVersion
+    - Publishes metrics with value=0 for historical versions (from current tags only)
+    - Designed for frequent execution (e.g., every 5 minutes via CloudWatch Events)
+    - Fast execution without AWS Config API calls
+
+    Args:
+        event: Lambda event (unused)
+        context: Lambda context (unused)
+
+    Returns:
+        dict: Status response with statusCode 200
+    """
+    publish_metrics(use_aws_config=False)
+    return {"statusCode": 200, "body": "Metrics updated successfully"}
+
+
+def handle_history_metrics(event, context):
+    """
+    Lambda handler for historical metrics collection using AWS Config.
+
+    This handler uses AWS Config to push idle metrics of old AppVersion and
+    TerraformVersion to maintain them alive and make them discoverable via
+    CloudWatch ListMetrics API (used by Grafana).
+
+    Purpose:
+    - Fetches historical configuration data from AWS Config
+    - Publishes metrics with value=0 for all historical AppVersion and TerraformVersion
+    - Keeps old metrics "alive" in CloudWatch for Grafana discovery
+    - Default later_days=14 due to CloudWatch behavior (see explanation below)
+
+    CloudWatch Behavior Explanation:
+    CloudWatch has a retention policy where metrics with no data points for
+    14+ days are automatically deleted and become unavailable via ListMetrics API.
+    By setting later_days=14, we ensure historical metrics are refreshed
+    before they expire, keeping them discoverable in Grafana dashboards.
+
+    Args:
+        event: Lambda event containing optional parameters:
+            - earlier_days (float): Days to look back for history (default: 365)
+            - later_days (float): Days to look back for recent data (default: 14)
+        context: Lambda context (unused)
+
+    Returns:
+        dict: Status response with statusCode 200
+    """
+    earlier_days = event.get("earlier_days", Config.FULL_HISTORY_EARLIER_DAYS)
+    later_days = event.get("later_days", Config.CLOUDWATCH_RETENTION_OLD_METRICS_DAYS)
+    publish_metrics(
+        use_aws_config=True, earlier_days=earlier_days, later_days=later_days
+    )
+    return {"statusCode": 200, "body": "Metrics updated successfully"}
+
+
 if __name__ == "__main__":
     import sys
 
@@ -464,12 +520,12 @@ if __name__ == "__main__":
     start_time = time.time()
 
     # Parse command line arguments with flexible parsing
-    include_history = True
-    earlier_days = Config.HISTORY_DAYS_LOOKBACK
-    later_days = Config.RECENT_DAYS_CUTOFF
+    use_aws_config = True
+    earlier_days = Config.FULL_HISTORY_EARLIER_DAYS
+    later_days = 0
 
     if len(sys.argv) >= 2:
-        include_history = sys.argv[1].lower() == "true"
+        use_aws_config = sys.argv[1].lower() == "true"
 
     if len(sys.argv) >= 3:
         earlier_days = float(sys.argv[2])
@@ -504,11 +560,11 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print(
-        f"Running with args: include_history={include_history}, earlier_days={earlier_days}, later_days={later_days}"
+        f"Running with args: use_aws_config={use_aws_config}, earlier_days={earlier_days}, later_days={later_days}"
     )
 
     publish_metrics(
-        include_history=include_history,
+        use_aws_config=use_aws_config,
         earlier_days=earlier_days,
         later_days=later_days,
     )

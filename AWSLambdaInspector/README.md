@@ -58,6 +58,36 @@ The AWS Lambda Inspector consists of the following components:
    - Stack-level monitoring
    - Historical version trends
 
+## Lambda Handlers
+
+The AWS Lambda Inspector provides two distinct handlers for different monitoring scenarios:
+
+### `handle_current_metrics`
+
+**Purpose**: Fast, frequent monitoring without AWS Config dependency.
+
+- **Does NOT use AWS Config** - collects current tags directly from Lambda API
+- **Publishes actual AppVersion and TerraformVersion metrics** to CloudWatch
+- **Designed for frequent execution** (e.g., every 5 minutes via CloudWatch Events)
+- **Fast execution** without AWS Config API calls
+- **Publishes metrics with value=1** for current versions, value=0 for historical versions
+
+**Use Case**: Regular monitoring of currently deployed Lambda functions for real-time version tracking.
+
+### `handle_history_metrics`
+
+**Purpose**: Historical analysis using AWS Config to maintain metric discoverability.
+
+- **Uses AWS Config** to fetch historical configuration data
+- **Publishes idle metrics of old AppVersion and TerraformVersion** to keep them "alive"
+- **Maintains metric discoverability** via CloudWatch ListMetrics API (used by Grafana)
+- **Default later_days=14** due to CloudWatch retention behavior
+
+**CloudWatch Behavior Explanation**:
+CloudWatch automatically deletes metrics with no data points for 14+ days, making them unavailable via ListMetrics API. By setting `later_days=14`, we ensure historical metrics are refreshed before they expire, keeping them discoverable in Grafana dashboards.
+
+**Use Case**: Periodic execution to maintain historical metrics for comprehensive version analysis and Grafana dashboard functionality.
+
 ## Deployment
 ### Installation Steps
 
@@ -105,7 +135,7 @@ python lambda_inspector_function.py True 7 0
 
 ### Parameters
 
-- `include_history`: Boolean flag to enable/disable AWS Config history queries
+- `use_aws_config`: Boolean flag to enable/disable AWS Config history queries
 - `earlier_days`: Number of days to look back for historical data (default: 365)
 - `later_days`: Number of recent days to exclude from history (default: 0)
 
@@ -182,7 +212,7 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region to deploy the resources in | `string` | `"us-east-1"` | no |
-| <a name="input_cloudwatch_namespace"></a> [cloudwatch\_namespace](#input\_cloudwatch\_namespace) | The namespace for the CloudWatch metrics | `string` | `"LambdaInspect"` | no |
+| <a name="input_cloudwatch_namespace"></a> [cloudwatch\_namespace](#input\_cloudwatch\_namespace) | The namespace for the CloudWatch metrics | `string` | `"StackRef"` | no |
 | <a name="input_grafana_access_token"></a> [grafana\_access\_token](#input\_grafana\_access\_token) | The access token for the Grafana instance, can be found in the Grafana UI under the user menu > API keys, can be stored in the terraform.auto.tfvars file, or set as an environment variable, e.g. export TF\_VAR\_grafana\_access\_token=<your\_token> | `string` | n/a | yes |
 | <a name="input_grafana_datasource_name"></a> [grafana\_datasource\_name](#input\_grafana\_datasource\_name) | The name of the Grafana datasource | `string` | `"cw-demo-lambda-inspector"` | no |
 | <a name="input_grafana_url"></a> [grafana\_url](#input\_grafana\_url) | The URL of the Grafana instance | `string` | n/a | yes |

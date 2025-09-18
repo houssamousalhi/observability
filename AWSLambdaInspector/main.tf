@@ -25,7 +25,7 @@ locals {
 module "lambda_example" {
   for_each      = local.flattened_lambdas
   source        = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=v6.4.0"
-  function_name = "lbd-${each.value.env}-${each.value.service}-${each.value.stack}-${each.value.lambda}"
+  function_name = "lbd-${each.value.env}-${each.value.stack}-${each.value.service}-${each.value.lambda}"
   description   = "example to track the lambda tags"
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.13"
@@ -56,7 +56,7 @@ module "lambda_app_inspector" {
   source        = "git::https://github.com/terraform-aws-modules/terraform-aws-lambda.git?ref=v6.4.0"
   function_name = "app-inspector"
   description   = "app inspector, push lambda and terraform tags to cloudwatch metric"
-  handler       = "lambda_inspector_function.lambda_handler"
+  handler       = "lambda_inspector_function.handle_current_metrics"
   runtime       = "python3.13"
   memory_size   = 160
   timeout       = 30

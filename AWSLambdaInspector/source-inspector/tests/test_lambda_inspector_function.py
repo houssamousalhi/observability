@@ -18,7 +18,8 @@ from lambda_inspector_function import (
     create_terraform_dimensions,
     publish_lambda_metric,
     publish_terraform_metric,
-    lambda_handler,
+    handle_current_metrics,
+    handle_history_metrics,
     publish_metrics,
 )
 
@@ -31,10 +32,24 @@ def mock_cloudwatch():
 
 
 @patch("lambda_inspector_function.publish_metrics")
-def test_lambda_handler(mock_publish_metrics):
-    """Test lambda_handler calls publish_metrics correctly"""
+def test_handle_current_metrics(mock_publish_metrics):
+    """Test handle_current_metrics calls publish_metrics correctly"""
     # Call the handler
-    response = lambda_handler({}, {})
+    response = handle_current_metrics({}, {})
+
+    # Verify the response
+    assert response["statusCode"] == 200
+    assert response["body"] == "Metrics updated successfully"
+
+    # Verify publish_metrics was called with correct parameters
+    mock_publish_metrics.assert_called_once_with(use_aws_config=False)
+
+
+@patch("lambda_inspector_function.publish_metrics")
+def test_handle_history_metrics(mock_publish_metrics):
+    """Test handle_history_metrics calls publish_metrics correctly"""
+    # Call the handler
+    response = handle_history_metrics({}, {})
 
     # Verify the response
     assert response["statusCode"] == 200
@@ -42,7 +57,7 @@ def test_lambda_handler(mock_publish_metrics):
 
     # Verify publish_metrics was called with correct parameters
     mock_publish_metrics.assert_called_once_with(
-        include_history=True, earlier_days=1, later_days=0
+        use_aws_config=True, earlier_days=365, later_days=14
     )
 
 
@@ -227,67 +242,59 @@ class TestLambdaInspector:
 
 
 @patch("lambda_inspector_function.publish_metrics")
-def test_lambda_handler_with_multiple_functions(mock_publish_metrics):
-    """Test lambda_handler with multiple functions having different tag combinations"""
+def test_handle_current_metrics_with_multiple_functions(mock_publish_metrics):
+    """Test handle_current_metrics with multiple functions having different tag combinations"""
     # Call the handler
-    response = lambda_handler({}, {})
+    response = handle_current_metrics({}, {})
 
     # Verify the response
     assert response["statusCode"] == 200
     assert response["body"] == "Metrics updated successfully"
 
     # Verify publish_metrics was called with correct parameters
-    mock_publish_metrics.assert_called_once_with(
-        include_history=True, earlier_days=1, later_days=0
-    )
+    mock_publish_metrics.assert_called_once_with(use_aws_config=False)
 
 
 @patch("lambda_inspector_function.publish_metrics")
-def test_lambda_handler_with_no_functions(mock_publish_metrics):
-    """Test lambda_handler when no functions are found"""
+def test_handle_current_metrics_with_no_functions(mock_publish_metrics):
+    """Test handle_current_metrics when no functions are found"""
     # Call the handler
-    response = lambda_handler({}, {})
+    response = handle_current_metrics({}, {})
 
     # Verify the response
     assert response["statusCode"] == 200
     assert response["body"] == "Metrics updated successfully"
 
     # Verify publish_metrics was called
-    mock_publish_metrics.assert_called_once_with(
-        include_history=True, earlier_days=1, later_days=0
-    )
+    mock_publish_metrics.assert_called_once_with(use_aws_config=False)
 
 
 @patch("lambda_inspector_function.publish_metrics")
-def test_lambda_handler_with_functions_without_appversion(mock_publish_metrics):
-    """Test lambda_handler when all functions lack AppVersion tag"""
+def test_handle_current_metrics_with_functions_without_appversion(mock_publish_metrics):
+    """Test handle_current_metrics when all functions lack AppVersion tag"""
     # Call the handler
-    response = lambda_handler({}, {})
+    response = handle_current_metrics({}, {})
 
     # Verify the response
     assert response["statusCode"] == 200
     assert response["body"] == "Metrics updated successfully"
 
     # Verify publish_metrics was called
-    mock_publish_metrics.assert_called_once_with(
-        include_history=True, earlier_days=1, later_days=0
-    )
+    mock_publish_metrics.assert_called_once_with(use_aws_config=False)
 
 
 @patch("lambda_inspector_function.publish_metrics")
-def test_lambda_handler_handles_cloudwatch_errors(mock_publish_metrics):
-    """Test lambda_handler handles CloudWatch errors gracefully"""
+def test_handle_current_metrics_handles_cloudwatch_errors(mock_publish_metrics):
+    """Test handle_current_metrics handles CloudWatch errors gracefully"""
     # Call the handler
-    response = lambda_handler({}, {})
+    response = handle_current_metrics({}, {})
 
     # Verify the response
     assert response["statusCode"] == 200
     assert response["body"] == "Metrics updated successfully"
 
     # Verify publish_metrics was called
-    mock_publish_metrics.assert_called_once_with(
-        include_history=True, earlier_days=1, later_days=0
-    )
+    mock_publish_metrics.assert_called_once_with(use_aws_config=False)
 
 
 # Tests for new helper functions and classes
@@ -332,8 +339,8 @@ class TestConfig:
         """Test that config values are correct"""
         assert Config.METRIC_UNIT == "Count"
         assert Config.UNKNOWN_VALUE == "Unknown"
-        assert Config.HISTORY_DAYS_LOOKBACK == 365
-        assert Config.RECENT_DAYS_CUTOFF == 0
+        assert Config.FULL_HISTORY_EARLIER_DAYS == 365
+        assert Config.CLOUDWATCH_RETENTION_OLD_METRICS_DAYS == 14
         assert Config.CONFIG_HISTORY_LIMIT == 100
         assert Config.AWS_LAMBDA_FUNCTION_RESOURCE_TYPE == "AWS::Lambda::Function"
 
@@ -528,7 +535,7 @@ def test_publish_metrics_with_history(mock_session):
     ]
 
     # Call publish_metrics with history
-    publish_metrics(include_history=True)
+    publish_metrics(use_aws_config=True)
 
     # Verify CloudWatch metrics were published
     assert mock_cloudwatch.put_metric_data.call_count >= 1
@@ -574,7 +581,7 @@ def test_publish_metrics_without_history(mock_session):
     }
 
     # Call publish_metrics without history
-    publish_metrics(include_history=False)
+    publish_metrics(use_aws_config=False)
 
     # Verify CloudWatch metrics were published
     assert mock_cloudwatch.put_metric_data.call_count >= 1
@@ -652,7 +659,7 @@ def test_publish_metrics_with_empty_history(mock_session):
     ]
 
     # Call publish_metrics with history but empty results
-    publish_metrics(include_history=True, earlier_days=1, later_days=0)
+    publish_metrics(use_aws_config=True, earlier_days=1, later_days=0)
 
     # Verify CloudWatch metrics were still published (using current tags)
     assert mock_cloudwatch.put_metric_data.call_count >= 1
@@ -735,7 +742,7 @@ def test_publish_metrics_with_config_exception(mock_session):
     )
 
     # Call publish_metrics with history - should handle Config exception gracefully
-    publish_metrics(include_history=True, earlier_days=1, later_days=0)
+    publish_metrics(use_aws_config=True, earlier_days=1, later_days=0)
 
     # Verify CloudWatch metrics were still published (using current tags only)
     assert mock_cloudwatch.put_metric_data.call_count >= 1

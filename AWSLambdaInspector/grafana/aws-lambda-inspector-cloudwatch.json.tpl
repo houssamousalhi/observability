@@ -1,5 +1,14 @@
 {
-  "__inputs": [],
+  "__inputs": [
+    {
+      "name": "DS_CW-DEMO-LAMBDA-INSPECTOR",
+      "label": "${cw_datasource_name}",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "cloudwatch",
+      "pluginName": "CloudWatch"
+    }
+  ],
   "__elements": {},
   "__requires": [
     {
@@ -12,7 +21,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "12.0.0-85518.patch7-85777"
+      "version": "12.2.0-17610496912"
     },
     {
       "type": "datasource",
@@ -46,7 +55,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
   "links": [],
   "panels": [
     {
@@ -80,7 +88,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               }
             ]
           }
@@ -127,7 +136,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.0-85518.patch7-85777",
+      "pluginVersion": "12.2.0-17610496912",
       "repeat": "service",
       "repeatDirection": "v",
       "targets": [
@@ -139,6 +148,7 @@
           "dimensions": {
             "Env": "$${env}",
             "Service": "$${service}",
+            "Stack": "$${stack}",
             "TerraformVersion": "*"
           },
           "hide": false,
@@ -193,7 +203,8 @@
             "AppVersion": "*",
             "Env": "$${env}",
             "FunctionName": "*",
-            "Service": "$${service}"
+            "Service": "$${service}",
+            "Stack": "$${stack}"
           },
           "hide": false,
           "id": "service",
@@ -276,7 +287,7 @@
     }
   ],
   "refresh": "",
-  "schemaVersion": 41,
+  "schemaVersion": 42,
   "tags": [
     "AWS",
     "lambda",
@@ -324,6 +335,33 @@
         },
         "definition": "",
         "includeAll": true,
+        "label": "Stack",
+        "multi": true,
+        "name": "stack",
+        "options": [],
+        "query": {
+          "dimensionFilters": {
+            "Env": "$${env}"
+          },
+          "dimensionKey": "Stack",
+          "metricName": "terraformTag",
+          "namespace": "${cloudwatch_namespace}",
+          "queryType": "dimensionValues",
+          "refId": "CloudWatchVariableQueryEditor-VariableQuery",
+          "region": "default"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "cloudwatch",
+          "uid": "$${datasource}"
+        },
+        "definition": "",
+        "includeAll": true,
         "label": "Application",
         "multi": true,
         "name": "service",
@@ -346,7 +384,7 @@
     ]
   },
   "time": {
-    "from": "now-7d",
+    "from": "now-3h",
     "to": "now"
   },
   "timepicker": {},
@@ -354,5 +392,6 @@
   "title": "Lambda Inspector",
   "uid": "aws-lambda-inspector-cloudwatch",
   "version": 1,
-  "weekStart": ""
+  "weekStart": "",
+  "id": null
 }

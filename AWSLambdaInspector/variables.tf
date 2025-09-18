@@ -13,7 +13,7 @@ variable "schedule_expression_lambda_inspector" {
 variable "cloudwatch_namespace" {
   description = "The namespace for the CloudWatch metrics"
   type        = string
-  default     = "LambdaInspect"
+  default     = "StackRef"
 }
 
 variable "grafana_url" {
