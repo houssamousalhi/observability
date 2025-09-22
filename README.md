@@ -3,7 +3,7 @@
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Test Coverage](https://img.shields.io/badge/coverage-89%25-green?style=for-the-badge&logoColor=white)
+![Test Coverage](https://img.shields.io/badge/coverage-91%25-brightgreen?style=for-the-badge&logoColor=white)
 
 ## Pre-commit-checks
 
