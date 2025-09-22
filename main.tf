@@ -12,10 +12,82 @@ module "lambda_inspector" {
   grafana_url                          = var.grafana_url
   grafana_access_token                 = var.grafana_access_token
   schedule_expression_lambda_inspector = "rate(5 minutes)"
+  lambda_versions = {
+    "prod" = {
+      "primary" = {
+        "frontend" = {
+          "auth" = {
+            "version"          = "1.2.0"
+            "TerraformVersion" = "1.3.0-RELEASE"
+          }
+          "cache" = {
+            "version"          = "2.4.0"
+            "TerraformVersion" = "1.3.0-RELEASE"
+          }
+        }
+        "backend" = {
+          "producer" = {
+            "version"          = "1.2.0"
+            "TerraformVersion" = "1.4.0-RELEASE"
+          }
+          "consumer" = {
+            "version"          = "2.5.0"
+            "TerraformVersion" = "1.4.0-RELEASE"
+          }
+        }
+      }
+      "next" = {
+        "frontend" = {
+          "auth" = {
+            "version"          = "1.2.0"
+            "TerraformVersion" = "1.3.0-RELEASE"
+          }
+          "cache" = {
+            "version"          = "2.4.0"
+            "TerraformVersion" = "1.3.0-RELEASE"
+          }
+        }
+        "backend" = {
+          "producer" = {
+            "version"          = "1.1.1"
+            "TerraformVersion" = "1.4.0-RC6"
+          }
+          "consumer" = {
+            "version"          = "2.4.1"
+            "TerraformVersion" = "1.4.0-RC5"
+          }
+        }
+      }
+    }
+    "dev" = {
+      "primary" = {
+        "frontend" = {
+          "auth" = {
+            "version"          = "1.2.0"
+            "TerraformVersion" = "1.4.0-SNAPSHOT"
+          }
+          "cache" = {
+            "version"          = "2.4.0"
+            "TerraformVersion" = "1.4.0-SNAPSHOT"
+          }
+        }
+        "backend" = {
+          "producer" = {
+            "version"          = "1.1.1"
+            "TerraformVersion" = "1.4.0-RC6"
+          }
+          "consumer" = {
+            "version"          = "2.4.1"
+            "TerraformVersion" = "1.4.0-RC5"
+          }
+        }
+      }
+    }
+  }
 }
+
 module "grafana_cloudwatch_key_rotator" {
-  source                               = "./GrafanaCloudWatchKeyRotator"
-  grafana_url                          = var.grafana_url
-  grafana_access_token                 = var.grafana_access_token
-  schedule_expression_iam_key_rotation = "rate(5 minutes)"
+  source               = "./GrafanaCloudWatchKeyRotator"
+  grafana_url          = var.grafana_url
+  grafana_access_token = var.grafana_access_token
 }

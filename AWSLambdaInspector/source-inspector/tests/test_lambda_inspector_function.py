@@ -170,8 +170,22 @@ class TestLambdaInspector:
         assert len(functions) == 1
         assert functions[0].name == "function-normal"
 
-    def test_extract_service_info_with_complete_tags(self):
+    @patch("lambda_inspector_function.boto3.Session")
+    def test_extract_service_info_with_complete_tags(self, mock_session):
         """Test extract_service_info with all required tags present"""
+        # Mock the session and clients to avoid region errors
+        mock_lambda = MagicMock()
+        mock_cloudwatch = MagicMock()
+        mock_config = MagicMock()
+
+        mock_session_instance = MagicMock()
+        mock_session_instance.client.side_effect = [
+            mock_lambda,
+            mock_cloudwatch,
+            mock_config,
+        ]
+        mock_session.return_value = mock_session_instance
+
         function = LambdaFunction(
             name="test-function",
             arn="arn:aws:lambda:region:account:function:test-function",
@@ -192,8 +206,22 @@ class TestLambdaInspector:
         assert service_info.stack == "production"
         assert service_info.terraform_version == "1.5.0"
 
-    def test_extracEt_service_info_with_missing_optional_tags(self):
+    @patch("lambda_inspector_function.boto3.Session")
+    def test_extract_service_info_with_missing_optional_tags(self, mock_session):
         """Test extract_service_info with missing optional tags"""
+        # Mock the session and clients to avoid region errors
+        mock_lambda = MagicMock()
+        mock_cloudwatch = MagicMock()
+        mock_config = MagicMock()
+
+        mock_session_instance = MagicMock()
+        mock_session_instance.client.side_effect = [
+            mock_lambda,
+            mock_cloudwatch,
+            mock_config,
+        ]
+        mock_session.return_value = mock_session_instance
+
         function = LambdaFunction(
             name="test-function",
             arn="arn:aws:lambda:region:account:function:test-function",
