@@ -268,6 +268,68 @@ class TestLambdaInspector:
         assert metric_data["Value"] == 1
         assert metric_data["Unit"] == "Count"
 
+    @patch("lambda_inspector_function.boto3.Session")
+    def test_publish_metrics_batch_fallback_on_error(self, mock_session):
+        """Test that publish_metrics_batch falls back to individual publishing when batch fails"""
+        mock_lambda = MagicMock()
+        mock_cloudwatch = MagicMock()
+        mock_config = MagicMock()
+
+        mock_session_instance = MagicMock()
+        mock_session_instance.client.side_effect = [
+            mock_lambda,
+            mock_cloudwatch,
+            mock_config,
+        ]
+        mock_session.return_value = mock_session_instance
+
+        # Mock CloudWatch to fail on batch but succeed on individual calls
+        mock_cloudwatch.put_metric_data.side_effect = [
+            Exception("Batch publishing failed"),  # First call fails
+            None,  # Individual call 1 succeeds
+            None,  # Individual call 2 succeeds
+        ]
+
+        inspector = LambdaInspector()
+
+        # Create test metrics
+        from lambda_inspector_function import MetricsData, Config
+
+        metrics = [
+            MetricsData(
+                metric_name="testMetric1",
+                dimensions=[{"Name": "Env", "Value": "test"}],
+                value=1,
+                unit=Config.METRIC_UNIT,
+            ),
+            MetricsData(
+                metric_name="testMetric2",
+                dimensions=[{"Name": "Env", "Value": "test"}],
+                value=2,
+                unit=Config.METRIC_UNIT,
+            ),
+        ]
+
+        # This should trigger the fallback to individual publishing (line 291)
+        inspector.publish_metrics_batch(metrics)
+
+        # Verify CloudWatch was called 3 times: 1 batch attempt + 2 individual attempts
+        assert mock_cloudwatch.put_metric_data.call_count == 3
+
+        # Verify the individual calls were made with correct data
+        individual_calls = mock_cloudwatch.put_metric_data.call_args_list[1:]
+        assert len(individual_calls) == 2
+
+        # Check first individual call
+        first_call = individual_calls[0][1]
+        assert first_call["MetricData"][0]["MetricName"] == "testMetric1"
+        assert first_call["MetricData"][0]["Value"] == 1
+
+        # Check second individual call
+        second_call = individual_calls[1][1]
+        assert second_call["MetricData"][0]["MetricName"] == "testMetric2"
+        assert second_call["MetricData"][0]["Value"] == 2
+
 
 @patch("lambda_inspector_function.publish_metrics")
 def test_handle_current_metrics_with_multiple_functions(mock_publish_metrics):
